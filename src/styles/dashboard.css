@@ -1,0 +1,229 @@
+/* ── DASHBOARD ── */
+
+.dashboard {
+  min-height: calc(100vh - 60px);
+  background: var(--bg);
+}
+
+/* ── Welcome Banner ── */
+.dash-banner {
+  background: linear-gradient(135deg, var(--bg-mid) 0%, var(--bg) 100%);
+  border-bottom: 1px solid rgba(128,0,0,0.25);
+  padding: 3rem 2rem;
+}
+
+.dash-banner-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.dash-welcome h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  letter-spacing: 0.04em;
+  color: var(--cream);
+  margin-bottom: 0.5rem;
+}
+
+.dash-welcome h1 span {
+  color: var(--maroon-light);
+}
+
+.dash-welcome p {
+  font-family: var(--font-serif);
+  font-style: italic;
+  color: var(--text-dim);
+  font-size: 1.05rem;
+}
+
+.dash-banner-img {
+  width: 200px;
+  height: 140px;
+  object-fit: cover;
+  border-radius: var(--radius);
+  border: 2px solid rgba(128,0,0,0.4);
+  box-shadow: var(--shadow);
+}
+
+/* ── Noticeboard ── */
+.dash-notice {
+  background: rgba(128,0,0,0.12);
+  border-top: 1px solid rgba(128,0,0,0.25);
+  border-bottom: 1px solid rgba(128,0,0,0.25);
+  padding: 1rem 2rem;
+}
+
+.dash-notice-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-size: 0.9rem;
+  color: var(--cream-dim);
+}
+
+.notice-pin { font-size: 1.1rem; flex-shrink: 0; }
+
+/* ── Widgets ── */
+.dash-widgets {
+  padding: 3rem 2rem;
+}
+
+.dash-widgets-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.dash-section-title {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  letter-spacing: 0.04em;
+  color: var(--cream);
+  margin-bottom: 1.5rem;
+}
+
+.widgets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.widget {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--accent, var(--maroon));
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: transform 0.25s, box-shadow 0.25s;
+}
+
+.widget:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.35), 0 0 20px rgba(128,0,0,0.1);
+}
+
+.widget-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1rem 1.25rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.widget-icon { font-size: 1.2rem; }
+
+.widget-header h3 {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  letter-spacing: 0.06em;
+  color: var(--cream);
+}
+
+.widget-body {
+  padding: 1.25rem;
+}
+
+.widget-hint {
+  font-family: var(--font-serif);
+  font-style: italic;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.widget-btn {
+  background: rgba(255,235,205,0.08);
+  border: 1px solid var(--border);
+  color: var(--cream-dim);
+  padding: 0.55rem 1.2rem;
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  font-family: var(--font-body);
+  transition: all 0.2s;
+}
+
+.widget-btn:hover {
+  background: var(--cream-faint);
+  color: var(--cream);
+  border-color: rgba(255,235,205,0.25);
+}
+
+/* Gym widget */
+.streak {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.streak-num {
+  font-family: var(--font-display);
+  font-size: 3.5rem;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.streak-label {
+  font-size: 0.9rem;
+  color: var(--text-dim);
+}
+
+/* Nickbucks */
+.nickbucks {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.nb-icon { font-size: 2rem; }
+
+.nb-amount {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 2rem;
+  color: #f1c40f;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+.nb-label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Bruno widget */
+.widget-bruno {
+  --accent: #800000;
+}
+
+.wb-img {
+  width: 90px;
+  margin-bottom: 0.75rem;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));
+}
+
+/* ── FOOTER ── */
+.dash-footer {
+  text-align: center;
+  padding: 2rem;
+  color: rgba(255,235,205,0.3);
+  font-size: 0.8rem;
+  border-top: 1px solid rgba(128,0,0,0.15);
+  margin-top: 2rem;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 600px) {
+  .dash-banner-img { display: none; }
+  .widgets-grid { grid-template-columns: 1fr; }
+}
