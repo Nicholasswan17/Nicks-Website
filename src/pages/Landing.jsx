@@ -165,7 +165,7 @@ export default function Landing({ onEnter }) {
       <section className="l-signoff">
         <div className="l-signoff-inner">
           <img
-            src="/PortraitBruno-removebg-preview.png"
+            src="/Pbruno.png"
             alt="Bruno"
             className="l-signoff-bruno"
           />
