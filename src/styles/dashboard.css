@@ -41,8 +41,11 @@
 }
 
 .dash-banner-img {
-  width: 180px;
+  width: 200px;
+  height: 140px;
+  object-fit: cover;
   border-radius: var(--radius);
+  border: 2px solid rgba(128,0,0,0.4);
   box-shadow: var(--shadow);
 }
 

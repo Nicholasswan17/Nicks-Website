@@ -72,7 +72,7 @@ export default function Landing({ onEnter }) {
 
         <div className="l-hero-content">
           <img src="/NicktopiaLogoFinal.png" alt="Nicktopia" className="l-logo" />
-          <h1 className="l-title">Welcome to<br />Nicktopia</h1>
+          <h1 className="l-title">Welcome</h1>
           <p className="l-sub">Nick's corner of the internet. You're welcome.</p>
           <div className="l-hero-btns">
             <button className="btn-primary" onClick={onEnter}>Enter Nicktopia</button>
@@ -101,14 +101,8 @@ export default function Landing({ onEnter }) {
         <div className="l-about-inner">
           <div className="l-about-text">
             <h2>What is Nicktopia?</h2>
-            <p>
-              Nicktopia is Nick's personal platform — a one-stop hub for gym tracking,
-              movies, sports betting with fake money, messaging and file sharing.
-            </p>
-            <p>
-              Think of it as a social media site, but instead of ads and algorithms
-              you get dachshund commentary and honest movie reviews.
-            </p>
+            <p>Nicktopia is Nick's personal platform — a hub for gym tracking, movie recommendations, sports fixture updates, messaging and file sharing.</p>
+            <p>Think of it as a social media site, but instead of ads and algorithms you get dachshund commentary and a dog who judges your gym attendance.</p>
             <p>Built for friends. Powered by Bruno.</p>
             <button className="btn-primary" onClick={onEnter} style={{ marginTop: '1.5rem' }}>
               Join Nicktopia 🐾
@@ -116,7 +110,7 @@ export default function Landing({ onEnter }) {
           </div>
           <div className="l-about-photo">
             <img
-              src="/BrunieandNick-removebg-preview__1_.png"
+              src="/BN1.png"
               alt="Nick and Bruno"
               className="l-about-img"
             />

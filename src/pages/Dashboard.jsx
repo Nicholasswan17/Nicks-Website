@@ -87,10 +87,9 @@ export default function Dashboard({ user }) {
           </div>
           <img
             src="/Bruno_and_Nick-removebg-preview.png"
-            alt="Bruno and Nick"
+            alt="Nick and Bruno"
             className="dash-banner-img"
-            onError={e => { e.target.style.display = 'none' }}
-          />
+         />
         </div>
       </section>
 
