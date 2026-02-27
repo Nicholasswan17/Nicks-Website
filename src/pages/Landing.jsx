@@ -71,7 +71,7 @@ export default function Landing({ onEnter }) {
         <div className="l-hero-bg" />
 
         <div className="l-hero-content">
-          <img src="/NicktopiaLogoFinal.png" alt="Nicktopia" className="l-logo" />
+          <img src="/NLogo1.png" alt="Nicktopia" className="l-logo" />
           <h1 className="l-title">Welcome</h1>
           <p className="l-sub">Nick's corner of the internet. You're welcome.</p>
           <div className="l-hero-btns">
@@ -87,7 +87,7 @@ export default function Landing({ onEnter }) {
           <div className={`l-speech ${quoteVisible ? 'show' : ''}`}>
             {BRUNO_QUOTES[quoteIdx]}
           </div>
-          <img src="/SmileBruno__1_-removebg-preview.png" alt="Bruno" className="l-bruno-img" />
+          <img src="/Serious_Bruno-removebg-preview.png" alt="Bruno" className="l-bruno-img" />
         </div>
 
         <button
