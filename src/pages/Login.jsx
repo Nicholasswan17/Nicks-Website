@@ -41,7 +41,7 @@ export default function Login({ onLogin, onBack }) {
         {/* Bruno reacts to errors */}
         <div className="login-bruno">
           <img
-            src={error ? '/AngryBrunie-removebg-preview.png' : '/Serious_Bruno-removebg-preview.png'}
+            src={error ? '/AngryBrunie-removebg-preview.png' : '/DeathStareBrunie-removebg-preview.png'}
             alt="Bruno"
             className="login-bruno-img"
           />
@@ -49,7 +49,7 @@ export default function Login({ onLogin, onBack }) {
         </div>
 
         <div className="login-form-area">
-          <img src="/NicktopiaLogoFinal.png" alt="Nicktopia" className="login-logo" />
+          <img src="/NLogo1.png" alt="Nicktopia" className="login-logo" />
 
           <div className="login-tabs">
             <button
