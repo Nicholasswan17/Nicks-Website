@@ -87,7 +87,7 @@ export default function Landing({ onEnter }) {
           <div className={`l-speech ${quoteVisible ? 'show' : ''}`}>
             {BRUNO_QUOTES[quoteIdx]}
           </div>
-          <img src="/Serious_Bruno-removebg-preview.png" alt="Bruno" className="l-bruno-img" />
+          <img src="/Sbrunie.png" alt="Bruno" className="l-bruno-img" />
         </div>
 
         <button
