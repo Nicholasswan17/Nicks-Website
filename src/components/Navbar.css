@@ -1,0 +1,36 @@
+.site-header {
+  background-color: var(--bg);
+  padding: 1.2rem 0 0;
+  margin-bottom: 1.5rem;
+}
+
+.navbar {
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  margin-top: 0.8rem;
+  max-width: 1100px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.navbar a {
+  color: white;
+  text-decoration: none;
+  text-transform: uppercase;
+  background-color: var(--maroon);
+  flex: 1;
+  text-align: center;
+  padding: 7px 0;
+  font-size: 0.85rem;
+  font-family: Georgia, serif;
+  font-weight: normal;
+  letter-spacing: 0.08em;
+  transition: background-color 0.2s;
+  display: inline-block;
+}
+
+.navbar a:hover,
+.navbar a.active {
+  background-color: var(--maroon-dark);
+}

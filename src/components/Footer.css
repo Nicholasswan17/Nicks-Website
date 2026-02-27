@@ -1,0 +1,12 @@
+.site-footer {
+  margin-top: 2.5rem;
+  padding: 1rem 0;
+  border-top: 2px solid var(--maroon);
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--text);
+}
+
+.site-footer a {
+  color: var(--maroon);
+}

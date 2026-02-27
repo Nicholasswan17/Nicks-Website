@@ -1,0 +1,96 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --maroon: #800000;
+  --maroon-dark: #5c0000;
+  --bg: #ffebcd;
+  --text: #000;
+  --white: #fff;
+}
+
+body {
+  font-family: Georgia, serif;
+  font-size: 22px;
+  background-color: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+h1 {
+  font-family: 'Times New Roman', Times, serif;
+  text-align: center;
+  color: var(--text);
+  font-size: 2.8rem;
+  font-weight: bold;
+}
+
+h2 {
+  font-family: Georgia, serif;
+  color: var(--text);
+  font-size: 1.8rem;
+  font-weight: bold;
+  margin: 1.2rem 0 0.6rem;
+}
+
+p {
+  margin-bottom: 1rem;
+}
+
+a {
+  color: var(--maroon);
+}
+
+img {
+  border: 3px solid var(--maroon);
+  max-width: 100%;
+}
+
+ul, ol {
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+li {
+  margin-bottom: 0.2rem;
+}
+
+table {
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+table, th, td {
+  border: 2px solid var(--maroon);
+}
+
+th, td {
+  padding: 8px 16px;
+  text-align: left;
+  font-family: Georgia, serif;
+  font-size: 18px;
+}
+
+th {
+  font-weight: bold;
+}
+
+blockquote {
+  font-style: italic;
+  text-decoration: underline;
+  color: #333;
+  margin: 0.4rem 0 0.8rem;
+  font-size: 0.9rem;
+}
+
+dl dt {
+  font-weight: bold;
+  margin-top: 0.5rem;
+}
+
+dl dd {
+  margin-left: 1.5rem;
+}
