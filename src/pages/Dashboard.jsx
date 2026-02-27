@@ -86,7 +86,7 @@ export default function Dashboard({ user }) {
             <p>Welcome to Nicktopia. Bruno is already here. He got here first.</p>
           </div>
           <img
-            src="/BrunoandNick.jpg"
+            src="/Bruno_and_Nick-removebg-preview.png"
             alt="Bruno and Nick"
             className="dash-banner-img"
             onError={e => { e.target.style.display = 'none' }}
