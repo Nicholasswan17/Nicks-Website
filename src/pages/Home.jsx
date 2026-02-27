@@ -22,8 +22,8 @@ export default function Home() {
         more desirable than other breeds? To understand why Dachshunds are so popular we must
         examine the characteristics of them.
       </p>
-
       <img src="/HappyBruno.jpg" alt="Bruno the dog" className="facts-img" />
+
       <p>Some facts about Dachshunds include:</p>
       <ul>
         <li>Life expectancy of 12 to 16 years</li>

@@ -1,7 +1,6 @@
 .page-content {
-  max-width: 900spx;
-  margin: 0 auto;
-  padding: 0 1rem 2rem;
+  max-width: 900px;
+  padding: 0 0 2rem;
   animation: fadeIn 0.4s ease;
 }
 
@@ -19,14 +18,14 @@
 }
 
 .intro-img {
-  height: 175px;
+  height: 250px;
   width: auto;
   flex-shrink: 0;
 }
 
 .facts-img {
   float: right;
-  width: 240px;
+  width: 450px;
   margin: 0 0 1rem 1.5rem;
 }
 
@@ -64,7 +63,7 @@
 /* History page */
 .history-img-block {
   float: right;
-  width: 260px;
+  width: 420px;
   margin: 0 0 1rem 1.5rem;
   display: flex;
   flex-direction: column;
