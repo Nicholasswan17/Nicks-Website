@@ -333,6 +333,48 @@
 }
 .ctrl-btn:hover { transform: scale(1.1); }
 
+/* Room code */
+.room-code-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255,235,205,0.06);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.4rem 0.9rem;
+  margin-right: auto;
+}
+
+.room-code-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  font-weight: 700;
+}
+
+.room-code-id {
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: var(--cream);
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.room-code-copy {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  padding: 0;
+}
+
+.room-code-copy:hover { opacity: 1; }
+
 /* ── Join Screen ── */
 .video-join {
   text-align: center;

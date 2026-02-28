@@ -49,13 +49,20 @@ function VideoTile({ peer, avatarUrl }) {
 
 // ── Video Room ───────────────────────────────────────────────────────────────
 
-function VideoRoom({ user, roomId, onLeave, peerAvatars, onInCallChange }) {
+function VideoRoom({ user, roomId, onLeave, peerAvatars, onInCallChange, onPeerJoin }) {
   const hmsActions = useHMSActions()
   const isConnected = useHMSStore(selectIsConnectedToRoom)
   const peers = useHMSStore(selectPeers)
   const isAudioOn = useHMSStore(selectIsLocalAudioEnabled)
   const isVideoOn = useHMSStore(selectIsLocalVideoEnabled)
   const [joining, setJoining] = useState(false)
+
+  // Fetch avatar for each peer when they join
+  useEffect(() => {
+    peers.forEach(peer => {
+      if (peer.name) onPeerJoin(peer.name)
+    })
+  }, [peers, onPeerJoin])
 
   // Tell parent when we're live so navbar can guard navigation
   useEffect(() => {
@@ -117,6 +124,20 @@ function VideoRoom({ user, roomId, onLeave, peerAvatars, onInCallChange }) {
         ))}
       </div>
       <div className="video-controls">
+        <div className="room-code-wrap">
+          <span className="room-code-label">Room:</span>
+          <span className="room-code-id">{roomId}</span>
+          <button
+            className="room-code-copy"
+            onClick={() => {
+              navigator.clipboard.writeText(roomId)
+                .then(() => alert('Room code copied!'))
+            }}
+            title="Copy room code"
+          >
+            📋
+          </button>
+        </div>
         <button className={`ctrl-btn ${isAudioOn ? 'on' : 'off'}`} onClick={() => hmsActions.setLocalAudioEnabled(!isAudioOn)}>
           {isAudioOn ? '🎤' : '🔇'}
         </button>
@@ -200,11 +221,25 @@ export default function Nickchat({ user, avatarUrl, onAvatarUpdate, onInCallChan
   const [activeRoom, setActiveRoom] = useState(null)
   const [peerAvatars, setPeerAvatars] = useState({})
 
+  // Seed own avatar into peer map
   useEffect(() => {
     if (avatarUrl) {
-      setPeerAvatars(prev => ({ ...prev, [user.name]: avatarUrl }))
+      setPeerAvatars(prev => ({ ...prev, [user.displayName || user.name]: avatarUrl }))
     }
-  }, [avatarUrl, user.name])
+  }, [avatarUrl, user.name, user.displayName])
+
+  const fetchPeerAvatar = async (peerName) => {
+    // Skip if we already have it
+    if (peerAvatars[peerName]) return
+    const { data } = await supabase
+      .from('profiles')
+      .select('avatar_url')
+      .eq('display_name', peerName)
+      .single()
+    if (data?.avatar_url) {
+      setPeerAvatars(prev => ({ ...prev, [peerName]: data.avatar_url }))
+    }
+  }
 
   return (
     <HMSRoomProvider>
@@ -216,6 +251,7 @@ export default function Nickchat({ user, avatarUrl, onAvatarUpdate, onInCallChan
             onLeave={() => { setActiveRoom(null); onInCallChange(false) }}
             peerAvatars={peerAvatars}
             onInCallChange={onInCallChange}
+            onPeerJoin={fetchPeerAvatar}
           />
         ) : (
           <ChatLobby user={user} onJoinRoom={setActiveRoom} avatarUrl={avatarUrl} />
