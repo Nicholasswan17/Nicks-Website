@@ -98,17 +98,16 @@ export default function Login({ onLogin, onBack }) {
               <label>Password</label>
               <input type="password" name="password" placeholder="••••••••" value={form.password} onChange={handle} autoComplete={tab === 'login' ? 'current-password' : 'new-password'} />
             </div>
-
-            <button type="submit" className="btn-primary login-submit" disabled={loading}>
-              {loading ? 'Loading...' : tab === 'login' ? 'Enter Nicktopia' : 'Create Account'}
-            </button>
-
             <div className="login-divider"><span>or</span></div>
-
-            <button type="button" className="btn-google">
+            <button type="button" className="btn-google" onClick={async () => {
+              await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: { redirectTo: 'https://nicktopia.org' }
+              })
+            }}>
               <img src="https://www.google.com/favicon.ico" alt="G" />
               Continue with Google
-            </button>
+              </button>
           </form>
         </div>
       </div>
