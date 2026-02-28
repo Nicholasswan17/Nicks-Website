@@ -3,6 +3,7 @@ import {
   HMSRoomProvider,
   useHMSActions,
   useHMSStore,
+  useVideo,
   selectIsConnectedToRoom,
   selectPeers,
   selectIsLocalAudioEnabled,
@@ -44,13 +45,17 @@ function VideoRoom({ user, roomId, onLeave }) {
         }
       })
       if (error) throw error
-
+  
       await hmsActions.join({
         userName: user.name,
         authToken: data.token,
       })
     } catch (err) {
-      console.error('Failed to join:', err)
+      if (err.name === 'DeviceInUse') {
+        alert('Your camera/mic is in use by another app. Please close it and try again.')
+      } else {
+        console.error('Failed to join:', err)
+      }
     }
     setJoining(false)
   }
