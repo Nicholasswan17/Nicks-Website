@@ -70,8 +70,8 @@ function VideoTile({ peer, avatarUrl }) {
 // ─── In-Call Chat Panel ───────────────────────────────────────────────────────
 
 function CallChatPanel({ user }) {
-  const hmsActions = useHMSActions()
-  const messages   = useHMSStore(selectHMSMessages)
+  const hmsActions   = useHMSActions()
+  const messages     = useHMSStore(selectHMSMessages)
   const [input, setInput]       = useState('')
   const [open, setOpen]         = useState(false)
   const [unread, setUnread]     = useState(0)
@@ -217,14 +217,13 @@ function VideoRoom({ user, roomId, onLeave, peerAvatars, onInCallChange }) {
 
 function FriendsPanel({ user, onOpenDM }) {
   const [friends, setFriends]         = useState([])
-  const [pending, setPending]         = useState([])   // incoming requests
+  const [pending, setPending]         = useState([])
   const [searchQ, setSearchQ]         = useState('')
   const [searchRes, setSearchRes]     = useState([])
   const [searching, setSearching]     = useState(false)
-  const [profiles, setProfiles]       = useState({})   // userId → profile
+  const [profiles, setProfiles]       = useState({})
 
   const loadFriendData = useCallback(async () => {
-    // All friend rows
     const { data: rows } = await supabase
       .from('friends')
       .select('*')
@@ -235,7 +234,6 @@ function FriendsPanel({ user, onOpenDM }) {
     const accepted  = rows.filter(r => r.status === 'accepted')
     const incoming  = rows.filter(r => r.status === 'pending' && r.addressee === user.id)
 
-    // Collect unique other-user IDs to fetch profiles for
     const ids = [...new Set([
       ...accepted.map(r => r.requester === user.id ? r.addressee : r.requester),
       ...incoming.map(r => r.requester),
@@ -259,7 +257,6 @@ function FriendsPanel({ user, onOpenDM }) {
   useEffect(() => {
     loadFriendData()
 
-    // Realtime: refresh on any friend change
     const ch = supabase.channel('friends-panel')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'friends' }, loadFriendData)
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles' }, (payload) => {
@@ -305,7 +302,6 @@ function FriendsPanel({ user, onOpenDM }) {
 
   return (
     <div className="friends-panel">
-      {/* Search */}
       <div className="friends-search-wrap">
         <input
           className="friends-search"
@@ -326,7 +322,6 @@ function FriendsPanel({ user, onOpenDM }) {
         )}
       </div>
 
-      {/* Pending requests */}
       {pending.length > 0 && (
         <div className="friends-section">
           <h4 className="friends-section-title">
@@ -348,7 +343,6 @@ function FriendsPanel({ user, onOpenDM }) {
         </div>
       )}
 
-      {/* Friends list */}
       <div className="friends-section">
         <h4 className="friends-section-title">
           Friends <span className="badge">{friends.length}</span>
@@ -382,15 +376,45 @@ function FriendsPanel({ user, onOpenDM }) {
 
 // ─── Chat Room View ───────────────────────────────────────────────────────────
 
-function ChatRoomView({ user, room, onBack, otherProfile }) {
+function ChatRoomView({ user, room, onBack, otherProfile, onJoinCall }) {
   const [messages, setMessages] = useState([])
   const [input, setInput]       = useState('')
   const [senderProfiles, setSenderProfiles] = useState({})
+  const [renaming, setRenaming] = useState(false)
+  const [renameVal, setRenameVal] = useState(room.name || '')
+  const [memberCount, setMemberCount] = useState(null)
+  const [startingCall, setStartingCall] = useState(false)
   const bottomRef               = useRef()
   const inputRef                = useRef()
 
+  const saveRename = async () => {
+    if (!renameVal.trim()) return
+    await supabase.from('chat_rooms').update({ name: renameVal.trim() }).eq('id', room.id)
+    room.name = renameVal.trim()
+    setRenaming(false)
+  }
+
+  const startCall = async () => {
+    setStartingCall(true)
+    try {
+      const { data, error } = await supabase.functions.invoke('smooth-action', {
+        body: { createRoom: true, templateId: TEMPLATE_ID }
+      })
+      if (error) throw error
+      await supabase.from('messages').insert({
+        room_id: room.id,
+        sender_id: user.id,
+        content: data.roomId,
+        type: 'call',
+      })
+      onJoinCall(data.roomId)
+    } catch (err) {
+      console.error('Failed to start call:', err)
+    }
+    setStartingCall(false)
+  }
+
   useEffect(() => {
-    // Load history
     const load = async () => {
       const { data } = await supabase
         .from('messages')
@@ -401,7 +425,14 @@ function ChatRoomView({ user, room, onBack, otherProfile }) {
 
       setMessages(data || [])
 
-      // Fetch profiles for all senders
+      if (room.is_group) {
+        const { count } = await supabase
+          .from('room_members')
+          .select('*', { count: 'exact', head: true })
+          .eq('room_id', room.id)
+        setMemberCount(count)
+      }
+
       const ids = [...new Set((data || []).map(m => m.sender_id))]
       if (ids.length) {
         const { data: profs } = await supabase
@@ -415,7 +446,6 @@ function ChatRoomView({ user, room, onBack, otherProfile }) {
     }
     load()
 
-    // Realtime subscribe
     const ch = supabase.channel(`room-${room.id}`)
       .on('postgres_changes', {
         event: 'INSERT', schema: 'public', table: 'messages',
@@ -423,7 +453,6 @@ function ChatRoomView({ user, room, onBack, otherProfile }) {
       }, async (payload) => {
         const msg = payload.new
         setMessages(prev => [...prev, msg])
-        // Fetch profile if unknown
         if (!senderProfiles[msg.sender_id]) {
           const { data } = await supabase
             .from('profiles')
@@ -456,7 +485,9 @@ function ChatRoomView({ user, room, onBack, otherProfile }) {
 
   const roomName = room.is_group
     ? (room.name || 'Group Chat')
-    : (otherProfile?.display_name || 'DM')
+    : (otherProfile?.display_name ||
+       (user.id === room.created_by ? room.dm_name : room.dm_name_reverse) ||
+       'DM')
 
   return (
     <div className="chat-room-view">
@@ -466,15 +497,42 @@ function ChatRoomView({ user, room, onBack, otherProfile }) {
           <Avatar url={otherProfile.avatar_url} name={otherProfile.display_name} size={34} />
         )}
         {room.is_group && <span className="chat-room-icon">👥</span>}
-        <div>
-          <span className="chat-room-name">{roomName}</span>
+        <div style={{ flex: 1 }}>
+          {room.is_group && renaming ? (
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <input
+                className="profile-name-input"
+                value={renameVal}
+                onChange={e => setRenameVal(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && saveRename()}
+                autoFocus
+              />
+              <button className="profile-save-btn" onClick={saveRename}>Save</button>
+              <button className="profile-cancel-btn" onClick={() => setRenaming(false)}>Cancel</button>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span className="chat-room-name">{roomName}</span>
+              {room.is_group && (
+                <button className="profile-edit-btn" onClick={() => setRenaming(true)}>✏️</button>
+              )}
+            </div>
+          )}
           {!room.is_group && otherProfile && (
             <span className="chat-room-sub">Direct Message</span>
           )}
-          {room.is_group && (
-            <span className="chat-room-sub">Group · {room.memberCount || '?'} members</span>
+          {room.is_group && !renaming && (
+            <span className="chat-room-sub">Group · {memberCount ?? '...'} members</span>
           )}
         </div>
+        <button
+          className="chat-call-btn"
+          onClick={startCall}
+          disabled={startingCall}
+          title="Start video call"
+        >
+          {startingCall ? '⏳ Starting...' : '📹 Video Call'}
+        </button>
       </div>
 
       <div className="chat-messages-area">
@@ -501,7 +559,20 @@ function ChatRoomView({ user, room, onBack, otherProfile }) {
                 {!mine && !grouped && (
                   <span className="chat-msg-sender">{profile?.display_name || '...'}</span>
                 )}
-                <div className="chat-msg-bubble">{msg.content}</div>
+                {msg.type === 'call' ? (
+                  <div className="chat-call-card">
+                    <span>📹</span>
+                    <div>
+                      <span className="chat-call-card-title">Video Call</span>
+                      <span className="chat-call-card-sub">{mine ? 'You started a call' : `${profile?.display_name || '...'} started a call`}</span>
+                    </div>
+                    <button className="chat-call-join-btn" onClick={() => onJoinCall(msg.content)}>
+                      Join
+                    </button>
+                  </div>
+                ) : (
+                  <div className="chat-msg-bubble">{msg.content}</div>
+                )}
                 {!grouped && (
                   <span className="chat-msg-time">{timeAgo(msg.created_at)}</span>
                 )}
@@ -528,10 +599,37 @@ function ChatRoomView({ user, room, onBack, otherProfile }) {
 
 // ─── Group Room Creator ───────────────────────────────────────────────────────
 
-function CreateGroupModal({ user, friends, profiles, onCreated, onClose }) {
-  const [name, setName]         = useState('')
-  const [selected, setSelected] = useState([])
-  const [creating, setCreating] = useState(false)
+function CreateGroupModal({ user, onCreated, onClose }) {
+  const [name, setName]           = useState('')
+  const [selected, setSelected]   = useState([])
+  const [creating, setCreating]   = useState(false)
+  const [localFriends, setLocalFriends] = useState([])
+  const [localProfiles, setLocalProfiles] = useState({})
+  const [error, setError]         = useState('')
+
+  useEffect(() => {
+    const load = async () => {
+      const { data: rows } = await supabase
+        .from('friends')
+        .select('*')
+        .or(`requester.eq.${user.id},addressee.eq.${user.id}`)
+        .eq('status', 'accepted')
+
+      if (!rows?.length) return
+      setLocalFriends(rows)
+
+      const ids = rows.map(r => r.requester === user.id ? r.addressee : r.requester)
+      const { data: profs } = await supabase
+        .from('profiles')
+        .select('id, display_name, avatar_url')
+        .in('id', ids)
+
+      const map = {}
+      profs?.forEach(p => { map[p.id] = p })
+      setLocalProfiles(map)
+    }
+    load()
+  }, [user.id])
 
   const toggle = (id) => {
     setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
@@ -540,18 +638,28 @@ function CreateGroupModal({ user, friends, profiles, onCreated, onClose }) {
   const create = async () => {
     if (!name.trim() || selected.length === 0) return
     setCreating(true)
+    setError('')
 
-    const { data: room } = await supabase
-      .from('chat_rooms')
-      .insert({ name: name.trim(), is_group: true, created_by: user.id })
-      .select()
-      .single()
+    try {
+      const { data: room, error: roomErr } = await supabase
+        .from('chat_rooms')
+        .insert({ name: name.trim(), is_group: true, created_by: user.id })
+        .select()
+        .single()
 
-    const members = [user.id, ...selected].map(uid => ({ room_id: room.id, user_id: uid }))
-    await supabase.from('room_members').insert(members)
+      if (roomErr) throw roomErr
 
-    onCreated(room)
-    setCreating(false)
+      const members = [user.id, ...selected].map(uid => ({ room_id: room.id, user_id: uid }))
+      const { error: memberErr } = await supabase.from('room_members').insert(members)
+
+      if (memberErr) throw memberErr
+
+      onCreated(room)
+    } catch (err) {
+      console.error('Group creation failed:', err)
+      setError(err.message || 'Failed to create group. Try again.')
+      setCreating(false)
+    }
   }
 
   return (
@@ -566,9 +674,14 @@ function CreateGroupModal({ user, friends, profiles, onCreated, onClose }) {
         />
         <p className="modal-sub">Select friends to add:</p>
         <div className="modal-friend-list">
-          {friends.map(row => {
+          {localFriends.length === 0 && (
+            <p style={{ color: 'var(--text-dim)', fontSize: '0.85rem', fontStyle: 'italic', padding: '0.5rem' }}>
+              No friends yet. Add some friends first.
+            </p>
+          )}
+          {localFriends.map(row => {
             const otherId = row.requester === user.id ? row.addressee : row.requester
-            const p = profiles[otherId]
+            const p = localProfiles[otherId]
             return (
               <label key={otherId} className={`modal-friend-item ${selected.includes(otherId) ? 'sel' : ''}`}>
                 <input type="checkbox" checked={selected.includes(otherId)} onChange={() => toggle(otherId)} />
@@ -578,6 +691,7 @@ function CreateGroupModal({ user, friends, profiles, onCreated, onClose }) {
             )
           })}
         </div>
+        {error && <p style={{ color: '#e74c3c', fontSize: '0.85rem', marginBottom: '0.5rem' }}>{error}</p>}
         <div className="modal-btns">
           <button className="btn-secondary" onClick={onClose}>Cancel</button>
           <button className="btn-primary" onClick={create} disabled={creating || !name.trim() || selected.length === 0}>
@@ -592,17 +706,18 @@ function CreateGroupModal({ user, friends, profiles, onCreated, onClose }) {
 // ─── Chat Lobby / Main ────────────────────────────────────────────────────────
 
 function ChatLobby({ user, onJoinRoom, avatarUrl, onInCallChange }) {
-  const [tab, setTab]               = useState('chats')   // 'chats' | 'friends' | 'call'
+  const [tab, setTab]               = useState('chats')
   const [rooms, setRooms]           = useState([])
   const [friends, setFriends]       = useState([])
   const [profiles, setProfiles]     = useState({})
+  const [dmProfiles, setDmProfiles] = useState({})
   const [activeRoom, setActiveRoom] = useState(null)
   const [otherProfile, setOtherProfile] = useState(null)
   const [showCreateGroup, setShowCreateGroup] = useState(false)
   const [callRoomId, setCallRoomId] = useState('')
   const [creating, setCreating]     = useState(false)
 
-  // Heartbeat — mark user online
+  // Heartbeat
   useEffect(() => {
     const markOnline = () =>
       supabase.from('profiles').upsert({ id: user.id, is_online: true, last_seen: new Date().toISOString() })
@@ -622,7 +737,6 @@ function ChatLobby({ user, onJoinRoom, avatarUrl, onInCallChange }) {
   }, [user.id])
 
   const loadRooms = useCallback(async () => {
-    // My room memberships
     const { data: memberships } = await supabase
       .from('room_members')
       .select('room_id')
@@ -639,6 +753,37 @@ function ChatLobby({ user, onJoinRoom, avatarUrl, onInCallChange }) {
       .order('created_at', { ascending: false })
 
     setRooms(roomData || [])
+
+    // Load other person's profile for each DM
+    const dmRooms = (roomData || []).filter(r => !r.is_group)
+    if (dmRooms.length) {
+      const { data: allMembers } = await supabase
+        .from('room_members')
+        .select('room_id, user_id')
+        .in('room_id', dmRooms.map(r => r.id))
+
+      const otherIds = {}
+      allMembers?.forEach(m => {
+        if (m.user_id !== user.id) otherIds[m.room_id] = m.user_id
+      })
+
+      const uniqueIds = [...new Set(Object.values(otherIds))]
+      if (uniqueIds.length) {
+        const { data: profs } = await supabase
+          .from('profiles')
+          .select('id, display_name, avatar_url')
+          .in('id', uniqueIds)
+
+        const profileMap = {}
+        profs?.forEach(p => { profileMap[p.id] = p })
+
+        const dmProfileMap = {}
+        Object.entries(otherIds).forEach(([roomId, userId]) => {
+          dmProfileMap[roomId] = profileMap[userId]
+        })
+        setDmProfiles(dmProfileMap)
+      }
+    }
   }, [user.id])
 
   const loadFriends = useCallback(async () => {
@@ -682,7 +827,7 @@ function ChatLobby({ user, onJoinRoom, avatarUrl, onInCallChange }) {
 
   const openDM = async (otherId, profile) => {
     const { data: roomId } = await supabase.rpc('get_or_create_dm', { other_user: otherId })
-    const room = { id: roomId, is_group: false }
+    const room = { id: roomId, is_group: false, otherName: profile?.display_name }
     setOtherProfile(profile)
     setActiveRoom(room)
     setTab('chats')
@@ -722,6 +867,7 @@ function ChatLobby({ user, onJoinRoom, avatarUrl, onInCallChange }) {
         room={activeRoom}
         otherProfile={otherProfile}
         onBack={() => setActiveRoom(null)}
+        onJoinCall={onJoinRoom}
       />
     )
   }
@@ -762,17 +908,23 @@ function ChatLobby({ user, onJoinRoom, avatarUrl, onInCallChange }) {
               <p className="sidebar-empty">No chats yet. Message a friend to start.</p>
             )}
             {rooms.map(room => {
-              // For DMs, find the other member's profile
+              const dmProfile = !room.is_group ? dmProfiles[room.id] : null
               const roomName = room.is_group
                 ? (room.name || 'Group')
-                : 'DM'
+                : (dmProfile?.display_name ||
+                   (user.id === room.created_by ? room.dm_name : room.dm_name_reverse) ||
+                   'DM')
+              const dmAvatar = user.id === room.created_by ? room.dm_avatar : room.dm_avatar_reverse
               return (
                 <button
                   key={room.id}
                   className="room-list-item"
-                  onClick={() => { setActiveRoom(room); setOtherProfile(null) }}
+                  onClick={() => { setActiveRoom(room); setOtherProfile(dmProfile || null) }}
                 >
-                  <span className="room-list-icon">{room.is_group ? '👥' : '💬'}</span>
+                  {room.is_group
+                    ? <span className="room-list-icon">👥</span>
+                    : <Avatar url={dmAvatar} name={roomName} size={32} />
+                  }
                   <span className="room-list-name">{roomName}</span>
                 </button>
               )
@@ -821,8 +973,6 @@ function ChatLobby({ user, onJoinRoom, avatarUrl, onInCallChange }) {
       {showCreateGroup && (
         <CreateGroupModal
           user={user}
-          friends={friends}
-          profiles={profiles}
           onCreated={handleGroupCreated}
           onClose={() => setShowCreateGroup(false)}
         />
