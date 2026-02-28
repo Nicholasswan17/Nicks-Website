@@ -37,7 +37,7 @@ const WIDGETS = [
     content: (
       <div className="widget-sports">
         <div className="nickbucks">
-          <span className="nb-icon">🪙</span>
+        <span className="nb-icon">💰</span>
           <div>
             <span className="nb-amount">1,000</span>
             <span className="nb-label">Nickbucks</span>
@@ -86,7 +86,7 @@ export default function Dashboard({ user }) {
             <p>Welcome to Nicktopia. Bruno is already here. He got here first.</p>
           </div>
           <img
-            src="/Bruno_and_Nick-removebg-preview.png"
+            src="/LickingBrunie-removebg-preview.png"
             alt="Nick and Bruno"
             className="dash-banner-img"
          />
