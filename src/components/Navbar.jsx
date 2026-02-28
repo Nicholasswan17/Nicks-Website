@@ -10,7 +10,7 @@ const NAV_ITEMS = [
   { icon: '📁', label: 'Nickvault',path: '/nickvault' },
 ]
 
-export default function Navbar({ user, onLogout }) {
+export default function Navbar({ user, onLogout, activePage, onNavigate }) {
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState('/')
 
@@ -29,7 +29,7 @@ export default function Navbar({ user, onLogout }) {
             <button
               key={item.path}
               className={`nav-link ${active === item.path ? 'active' : ''}`}
-              onClick={() => setActive(item.path)}
+              onClick={() => { setActive(item.path); onNavigate(item.path.replace('/', '') || 'home') }}
             >
               <span className="nav-icon">{item.icon}</span>
               <span className="nav-label">{item.label}</span>

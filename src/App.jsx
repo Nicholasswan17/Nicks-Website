@@ -3,12 +3,14 @@ import { supabase } from './supabase'
 import Landing from './pages/Landing'
 import Dashboard from './pages/Dashboard'
 import Login from './pages/Login'
+import Nickchat from './pages/Nickchat'
 import Navbar from './components/Navbar'
 import './styles/global.css'
 
 export default function App() {
   const [user, setUser] = useState(null)
   const [showLogin, setShowLogin] = useState(false)
+  const [activePage, setActivePage] = useState('home')
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -38,15 +40,23 @@ export default function App() {
   const handleLogout = async () => {
     await supabase.auth.signOut()
     setUser(null)
+    setActivePage('home')
   }
 
   if (showLogin) return <Login onLogin={handleLogin} onBack={() => setShowLogin(false)} />
   if (!user) return <Landing onEnter={() => setShowLogin(true)} />
 
+  const renderPage = () => {
+    switch (activePage) {
+      case 'nickchat': return <Nickchat user={user} />
+      default: return <Dashboard user={user} onNavigate={setActivePage} />
+    }
+  }
+
   return (
     <div className="app">
-      <Navbar user={user} onLogout={handleLogout} />
-      <Dashboard user={user} />
+      <Navbar user={user} onLogout={handleLogout} activePage={activePage} onNavigate={setActivePage} />
+      {renderPage()}
     </div>
   )
 }

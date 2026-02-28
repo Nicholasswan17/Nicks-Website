@@ -1,6 +1,6 @@
 import '../styles/dashboard.css'
 
-const WIDGETS = [
+const WIDGETS = (onNavigate) => [
   {
     id: 'gym',
     icon: '💪',
@@ -56,7 +56,7 @@ const WIDGETS = [
     content: (
       <div className="widget-chat">
         <p className="widget-hint">No messages yet. Say hello to someone.</p>
-        <button className="widget-btn">Open Chat</button>
+        <button className="widget-btn" onClick={() => onNavigate('nickchat')}>Open Chat</button>
       </div>
     )
   },
@@ -74,7 +74,7 @@ const WIDGETS = [
   },
 ]
 
-export default function Dashboard({ user }) {
+export default function Dashboard({ user, onNavigate }) {
   return (
     <div className="dashboard">
 
@@ -109,7 +109,7 @@ export default function Dashboard({ user }) {
         <div className="dash-widgets-inner">
           <h2 className="dash-section-title">Your Nicktopia</h2>
           <div className="widgets-grid">
-            {WIDGETS.map(w => (
+          {WIDGETS(onNavigate).map(w => (
               <div
                 key={w.id}
                 className="widget"
