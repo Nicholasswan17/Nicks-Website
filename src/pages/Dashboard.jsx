@@ -82,7 +82,7 @@ export default function Dashboard({ user, onNavigate }) {
       <section className="dash-banner">
         <div className="dash-banner-inner">
           <div className="dash-welcome">
-            <h1>G'day, <span>{user.name}</span> 👋</h1>
+          <h1>G'day, <span>{user.displayName || user.name}</span> 👋</h1>
             <p>Welcome to Nicktopia. Bruno is already here. He got here first.</p>
           </div>
           <img

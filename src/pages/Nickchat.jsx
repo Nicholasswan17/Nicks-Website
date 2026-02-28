@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   HMSRoomProvider,
   useHMSActions,
@@ -12,20 +12,37 @@ import {
 import { supabase } from '../supabase'
 import '../styles/nickchat.css'
 
-const APP_SUBDOMAIN = 'nicholasswan17-videoconf-1248'
 const TEMPLATE_ID = '69a249696cb1ece855eac284'
 
-function VideoTile({ peer }) {
+// ── Video Tile ───────────────────────────────────────────────────────────────
+
+function VideoTile({ peer, avatarUrl }) {
   const { videoRef } = useVideo({ trackId: peer.videoTrack })
+  const hasVideo = !!peer.videoTrack
+
   return (
     <div className="video-tile">
-      <video ref={videoRef} autoPlay muted={peer.isLocal} playsInline />
+      {hasVideo ? (
+        <video ref={videoRef} autoPlay muted={peer.isLocal} playsInline />
+      ) : (
+        <div className="video-fallback">
+          {avatarUrl ? (
+            <img src={avatarUrl} alt={peer.name} className="tile-avatar" />
+          ) : (
+            <div className="tile-initials">
+              {peer.name?.charAt(0).toUpperCase() || '?'}
+            </div>
+          )}
+        </div>
+      )}
       <span className="peer-name">{peer.name}</span>
     </div>
   )
 }
 
-function VideoRoom({ user, roomId, onLeave }) {
+// ── Video Room ───────────────────────────────────────────────────────────────
+
+function VideoRoom({ user, roomId, onLeave, peerAvatars }) {
   const hmsActions = useHMSActions()
   const isConnected = useHMSStore(selectIsConnectedToRoom)
   const peers = useHMSStore(selectPeers)
@@ -33,23 +50,21 @@ function VideoRoom({ user, roomId, onLeave }) {
   const isVideoOn = useHMSStore(selectIsLocalVideoEnabled)
   const [joining, setJoining] = useState(false)
 
+  // Leave call when navigating away
+  useEffect(() => {
+    return () => {
+      if (isConnected) hmsActions.leave()
+    }
+  }, [isConnected, hmsActions])
+
   const joinRoom = async () => {
     setJoining(true)
     try {
       const { data, error } = await supabase.functions.invoke('smooth-action', {
-        body: {
-          roomId,
-          role: 'host',
-          userId: user.id,
-          userName: user.name,
-        }
+        body: { roomId, role: 'host', userId: user.id, userName: user.name }
       })
       if (error) throw error
-  
-      await hmsActions.join({
-        userName: user.name,
-        authToken: data.token,
-      })
+      await hmsActions.join({ userName: user.name, authToken: data.token })
     } catch (err) {
       if (err.name === 'DeviceInUse') {
         alert('Your camera/mic is in use by another app. Please close it and try again.')
@@ -85,31 +100,25 @@ function VideoRoom({ user, roomId, onLeave }) {
     <div className="video-room">
       <div className="video-grid">
         {peers.map(peer => (
-          <VideoTile key={peer.id} peer={peer} />
+          <VideoTile key={peer.id} peer={peer} avatarUrl={peerAvatars[peer.name] || null} />
         ))}
       </div>
       <div className="video-controls">
-        <button
-          className={`ctrl-btn ${isAudioOn ? 'on' : 'off'}`}
-          onClick={() => hmsActions.setLocalAudioEnabled(!isAudioOn)}
-        >
+        <button className={`ctrl-btn ${isAudioOn ? 'on' : 'off'}`} onClick={() => hmsActions.setLocalAudioEnabled(!isAudioOn)}>
           {isAudioOn ? '🎤' : '🔇'}
         </button>
-        <button
-          className={`ctrl-btn ${isVideoOn ? 'on' : 'off'}`}
-          onClick={() => hmsActions.setLocalVideoEnabled(!isVideoOn)}
-        >
+        <button className={`ctrl-btn ${isVideoOn ? 'on' : 'off'}`} onClick={() => hmsActions.setLocalVideoEnabled(!isVideoOn)}>
           {isVideoOn ? '📷' : '🚫'}
         </button>
-        <button className="ctrl-btn leave" onClick={leaveRoom}>
-          🚪 Leave
-        </button>
+        <button className="ctrl-btn leave" onClick={leaveRoom}>🚪 Leave</button>
       </div>
     </div>
   )
 }
 
-function ChatLobby({ user, onJoinRoom }) {
+// ── Chat Lobby ───────────────────────────────────────────────────────────────
+
+function ChatLobby({ user, onJoinRoom, avatarUrl }) {
   const [roomId, setRoomId] = useState('')
   const [creating, setCreating] = useState(false)
 
@@ -117,10 +126,7 @@ function ChatLobby({ user, onJoinRoom }) {
     setCreating(true)
     try {
       const { data, error } = await supabase.functions.invoke('smooth-action', {
-        body: {
-          createRoom: true,
-          templateId: TEMPLATE_ID,
-        }
+        body: { createRoom: true, templateId: TEMPLATE_ID }
       })
       if (error) throw error
       onJoinRoom(data.roomId)
@@ -133,7 +139,20 @@ function ChatLobby({ user, onJoinRoom }) {
   return (
     <div className="chat-lobby">
       <div className="chat-lobby-inner">
-        <img src="/CuteBruno.png" alt="Bruno" className="chat-bruno" />
+
+        {/* Mini profile strip */}
+        <div className="chat-profile-strip">
+          {avatarUrl ? (
+            <img src={avatarUrl} alt={user.name} className="chat-strip-avatar" />
+          ) : (
+            <div className="chat-strip-initial">{user.name?.charAt(0).toUpperCase() || '?'}</div>
+          )}
+          <div className="chat-strip-info">
+            <span className="chat-strip-name">{user.name}</span>
+            <span className="chat-strip-hint">your profile pic shows in calls when camera is off</span>
+          </div>
+        </div>
+
         <h1>Nickchat</h1>
         <p className="chat-sub">Bruno can't join the call. He doesn't have thumbs. Everyone else can.</p>
 
@@ -145,7 +164,6 @@ function ChatLobby({ user, onJoinRoom }) {
               {creating ? 'Creating...' : 'Start Video Call'}
             </button>
           </div>
-
           <div className="chat-card">
             <h3>🔗 Join a Call</h3>
             <p>Have a room ID? Enter it below.</p>
@@ -155,12 +173,7 @@ function ChatLobby({ user, onJoinRoom }) {
               value={roomId}
               onChange={e => setRoomId(e.target.value)}
             />
-            <button
-              className="btn-primary"
-              onClick={() => onJoinRoom(roomId)}
-              disabled={!roomId}
-              style={{ marginTop: '0.75rem' }}
-            >
+            <button className="btn-primary" onClick={() => onJoinRoom(roomId)} disabled={!roomId} style={{ marginTop: '0.75rem' }}>
               Join Call
             </button>
           </div>
@@ -170,20 +183,26 @@ function ChatLobby({ user, onJoinRoom }) {
   )
 }
 
-export default function Nickchat({ user }) {
+// ── Root ─────────────────────────────────────────────────────────────────────
+
+export default function Nickchat({ user, avatarUrl, onAvatarUpdate }) {
   const [activeRoom, setActiveRoom] = useState(null)
+  const [peerAvatars, setPeerAvatars] = useState({})
+
+  // Seed own avatar into peer map
+  useEffect(() => {
+    if (avatarUrl) {
+      setPeerAvatars(prev => ({ ...prev, [user.name]: avatarUrl }))
+    }
+  }, [avatarUrl, user.name])
 
   return (
     <HMSRoomProvider>
       <div className="nickchat">
         {activeRoom ? (
-          <VideoRoom
-            user={user}
-            roomId={activeRoom}
-            onLeave={() => setActiveRoom(null)}
-          />
+          <VideoRoom user={user} roomId={activeRoom} onLeave={() => setActiveRoom(null)} peerAvatars={peerAvatars} />
         ) : (
-          <ChatLobby user={user} onJoinRoom={setActiveRoom} />
+          <ChatLobby user={user} onJoinRoom={setActiveRoom} avatarUrl={avatarUrl} />
         )}
       </div>
     </HMSRoomProvider>
