@@ -10,14 +10,22 @@ const NAV_ITEMS = [
   { icon: '📁', label: 'Nickvault', path: '/nickvault' },
 ]
 
-export default function Navbar({ user, onLogout, activePage, onNavigate, avatarUrl }) {
-  const [open, setOpen] = useState(false)
+export default function Navbar({ user, onLogout, activePage, onNavigate, avatarUrl, isInCall }) {
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
   const [active, setActive] = useState('/')
 
   const navigate = (path, page) => {
+    if (isInCall && page !== 'nickchat') {
+      const confirmed = window.confirm(
+        "You're currently in a call. Leaving this page will end your call. Continue?"
+      )
+      if (!confirmed) return
+    }
     setActive(path)
     onNavigate(page)
-    setOpen(false)
+    setDropdownOpen(false)
+    setMobileOpen(false)
   }
 
   const name = user.displayName || user.name
@@ -47,7 +55,7 @@ export default function Navbar({ user, onLogout, activePage, onNavigate, avatarU
 
         {/* User area */}
         <div className="nav-user">
-          <div className="nav-avatar" onClick={() => setOpen(o => !o)}>
+          <div className="nav-avatar" onClick={() => setDropdownOpen(o => !o)}>
             {avatarUrl ? (
               <img src={avatarUrl} alt={name} className="nav-avatar-img" />
             ) : (
@@ -56,9 +64,9 @@ export default function Navbar({ user, onLogout, activePage, onNavigate, avatarU
               </div>
             )}
             <span>{name}</span>
-            <span className="nav-chevron">{open ? '▲' : '▼'}</span>
+            <span className="nav-chevron">{dropdownOpen ? '▲' : '▼'}</span>
           </div>
-          {open && (
+          {dropdownOpen && (
             <div className="nav-dropdown">
               <button className="nav-drop-item" onClick={() => navigate('/profile', 'profile')}>
                 👤 Profile
@@ -75,13 +83,13 @@ export default function Navbar({ user, onLogout, activePage, onNavigate, avatarU
         </div>
 
         {/* Mobile hamburger */}
-        <button className="nav-hamburger" onClick={() => setOpen(o => !o)}>
+        <button className="nav-hamburger" onClick={() => setMobileOpen(o => !o)}>
           <span /><span /><span />
         </button>
       </div>
 
       {/* Mobile menu */}
-      {open && (
+      {mobileOpen && (
         <div className="nav-mobile">
           {NAV_ITEMS.map(item => (
             <button

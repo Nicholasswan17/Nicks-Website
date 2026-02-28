@@ -8,6 +8,7 @@ import {
   selectPeers,
   selectIsLocalAudioEnabled,
   selectIsLocalVideoEnabled,
+  selectIsPeerVideoEnabled,
 } from '@100mslive/react-sdk'
 import { supabase } from '../supabase'
 import '../styles/nickchat.css'
@@ -18,13 +19,19 @@ const TEMPLATE_ID = '69a249696cb1ece855eac284'
 
 function VideoTile({ peer, avatarUrl }) {
   const { videoRef } = useVideo({ trackId: peer.videoTrack })
-  const hasVideo = !!peer.videoTrack
+  const isVideoEnabled = useHMSStore(selectIsPeerVideoEnabled(peer.id))
+  const hasVideo = !!peer.videoTrack && isVideoEnabled
 
   return (
     <div className="video-tile">
-      {hasVideo ? (
-        <video ref={videoRef} autoPlay muted={peer.isLocal} playsInline />
-      ) : (
+      <video
+        ref={videoRef}
+        autoPlay
+        muted={peer.isLocal}
+        playsInline
+        style={{ display: hasVideo ? 'block' : 'none', width: '100%', height: '100%', objectFit: 'cover' }}
+      />
+      {!hasVideo && (
         <div className="video-fallback">
           {avatarUrl ? (
             <img src={avatarUrl} alt={peer.name} className="tile-avatar" />
@@ -42,7 +49,7 @@ function VideoTile({ peer, avatarUrl }) {
 
 // ── Video Room ───────────────────────────────────────────────────────────────
 
-function VideoRoom({ user, roomId, onLeave, peerAvatars }) {
+function VideoRoom({ user, roomId, onLeave, peerAvatars, onInCallChange }) {
   const hmsActions = useHMSActions()
   const isConnected = useHMSStore(selectIsConnectedToRoom)
   const peers = useHMSStore(selectPeers)
@@ -50,7 +57,13 @@ function VideoRoom({ user, roomId, onLeave, peerAvatars }) {
   const isVideoOn = useHMSStore(selectIsLocalVideoEnabled)
   const [joining, setJoining] = useState(false)
 
-  // Leave call when navigating away
+  // Tell parent when we're live so navbar can guard navigation
+  useEffect(() => {
+    onInCallChange(isConnected)
+    return () => onInCallChange(false)
+  }, [isConnected, onInCallChange])
+
+  // Leave on unmount (e.g. forced navigation)
   useEffect(() => {
     return () => {
       if (isConnected) hmsActions.leave()
@@ -83,7 +96,7 @@ function VideoRoom({ user, roomId, onLeave, peerAvatars }) {
   if (!isConnected) {
     return (
       <div className="video-join">
-        <img src="/CuteBruno.png" alt="Bruno" className="chat-bruno" />
+        <img src="/SillySausageBruno-removebg-preview.png" alt="Bruno" className="chat-bruno" />
         <h2>Room: {roomId}</h2>
         <p>Bruno has reserved your seat. Don't keep him waiting.</p>
         <button className="btn-primary" onClick={joinRoom} disabled={joining}>
@@ -139,8 +152,6 @@ function ChatLobby({ user, onJoinRoom, avatarUrl }) {
   return (
     <div className="chat-lobby">
       <div className="chat-lobby-inner">
-
-        {/* Mini profile strip */}
         <div className="chat-profile-strip">
           {avatarUrl ? (
             <img src={avatarUrl} alt={user.name} className="chat-strip-avatar" />
@@ -148,7 +159,7 @@ function ChatLobby({ user, onJoinRoom, avatarUrl }) {
             <div className="chat-strip-initial">{user.name?.charAt(0).toUpperCase() || '?'}</div>
           )}
           <div className="chat-strip-info">
-            <span className="chat-strip-name">{user.name}</span>
+            <span className="chat-strip-name">{user.displayName || user.name}</span>
             <span className="chat-strip-hint">your profile pic shows in calls when camera is off</span>
           </div>
         </div>
@@ -185,11 +196,10 @@ function ChatLobby({ user, onJoinRoom, avatarUrl }) {
 
 // ── Root ─────────────────────────────────────────────────────────────────────
 
-export default function Nickchat({ user, avatarUrl, onAvatarUpdate }) {
+export default function Nickchat({ user, avatarUrl, onAvatarUpdate, onInCallChange }) {
   const [activeRoom, setActiveRoom] = useState(null)
   const [peerAvatars, setPeerAvatars] = useState({})
 
-  // Seed own avatar into peer map
   useEffect(() => {
     if (avatarUrl) {
       setPeerAvatars(prev => ({ ...prev, [user.name]: avatarUrl }))
@@ -200,7 +210,13 @@ export default function Nickchat({ user, avatarUrl, onAvatarUpdate }) {
     <HMSRoomProvider>
       <div className="nickchat">
         {activeRoom ? (
-          <VideoRoom user={user} roomId={activeRoom} onLeave={() => setActiveRoom(null)} peerAvatars={peerAvatars} />
+          <VideoRoom
+            user={user}
+            roomId={activeRoom}
+            onLeave={() => { setActiveRoom(null); onInCallChange(false) }}
+            peerAvatars={peerAvatars}
+            onInCallChange={onInCallChange}
+          />
         ) : (
           <ChatLobby user={user} onJoinRoom={setActiveRoom} avatarUrl={avatarUrl} />
         )}

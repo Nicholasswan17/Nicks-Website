@@ -24,6 +24,7 @@ export default function App() {
   const [activePage, setActivePage] = useState('home')
   const [avatarUrl, setAvatarUrl] = useState(null)
   const [displayName, setDisplayName] = useState(null)
+  const [isInCall, setIsInCall] = useState(false)
 
   const loadProfile = async (userId, fallbackName) => {
     const profile = await fetchProfile(userId)
@@ -71,6 +72,7 @@ export default function App() {
     setAvatarUrl(null)
     setDisplayName(null)
     setActivePage('home')
+    setIsInCall(false)
   }
 
   if (showLogin) return <Login onLogin={handleLogin} onBack={() => setShowLogin(false)} />
@@ -80,7 +82,14 @@ export default function App() {
 
   const renderPage = () => {
     switch (activePage) {
-      case 'nickchat': return <Nickchat user={enrichedUser} avatarUrl={avatarUrl} onAvatarUpdate={setAvatarUrl} />
+      case 'nickchat': return (
+        <Nickchat
+          user={enrichedUser}
+          avatarUrl={avatarUrl}
+          onAvatarUpdate={setAvatarUrl}
+          onInCallChange={setIsInCall}
+        />
+      )
       case 'profile':  return <Profile user={enrichedUser} avatarUrl={avatarUrl} onAvatarUpdate={setAvatarUrl} onDisplayNameUpdate={setDisplayName} />
       case 'settings': return <Settings user={enrichedUser} />
       default:         return <Dashboard user={enrichedUser} onNavigate={setActivePage} />
@@ -95,6 +104,7 @@ export default function App() {
         activePage={activePage}
         onNavigate={setActivePage}
         avatarUrl={avatarUrl}
+        isInCall={isInCall}
       />
       {renderPage()}
     </div>
