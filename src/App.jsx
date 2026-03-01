@@ -8,6 +8,7 @@ import Profile from './pages/Profile'
 import Settings from './pages/Settings'
 import Navbar from './components/Navbar'
 import './styles/global.css'
+import Nickflix from './components/Nickflix'
 
 async function fetchProfile(userId) {
   const { data } = await supabase
@@ -82,6 +83,9 @@ export default function App() {
 
   const renderPage = () => {
     switch (activePage) {
+      case 'nickflix': return (
+        <Nickflix user={enrichedUser} />
+      )
       case 'nickchat': return (
         <Nickchat
           user={enrichedUser}
@@ -90,9 +94,20 @@ export default function App() {
           onInCallChange={setIsInCall}
         />
       )
-      case 'profile':  return <Profile user={enrichedUser} avatarUrl={avatarUrl} onAvatarUpdate={setAvatarUrl} onDisplayNameUpdate={setDisplayName} />
-      case 'settings': return <Settings user={enrichedUser} />
-      default:         return <Dashboard user={enrichedUser} onNavigate={setActivePage} />
+      case 'profile': return (
+        <Profile
+          user={enrichedUser}
+          avatarUrl={avatarUrl}
+          onAvatarUpdate={setAvatarUrl}
+          onDisplayNameUpdate={setDisplayName}
+        />
+      )
+      case 'settings': return (
+        <Settings user={enrichedUser} />
+      )
+      default: return (
+        <Dashboard user={enrichedUser} onNavigate={setActivePage} />
+      )
     }
   }
 

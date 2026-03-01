@@ -1,0 +1,1252 @@
+/* ── Nickflix Cinema CSS ─────────────────────────────────────────────────── */
+
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap');
+
+:root {
+  --cinema-black: #0a0a0a;
+  --cinema-dark: #111111;
+  --cinema-card: #1a1a1a;
+  --cinema-border: #2a2a2a;
+  --cinema-red: #c0392b;
+  --cinema-gold: #c9a84c;
+  --cinema-cream: #f5f0e8;
+  --cinema-text: #d4cfc7;
+  --cinema-muted: #6b6560;
+  --curtain-red: #8b1a1a;
+  --curtain-shadow: #3d0a0a;
+  --spotlight: rgba(255, 240, 180, 0.12);
+}
+
+/* ── Base ────────────────────────────────────────────────────────────────── */
+.nickflix {
+  min-height: 100vh;
+  background: var(--cinema-black);
+  color: var(--cinema-text);
+  font-family: 'DM Sans', sans-serif;
+  overflow-x: hidden;
+}
+
+/* ── Cinema Header ───────────────────────────────────────────────────────── */
+.nf-cinema-header {
+  position: relative;
+  height: 220px;
+  background: #0d0808;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 2px solid #2a1a1a;
+}
+
+/* Curtains */
+.nf-curtain {
+  position: absolute;
+  top: 0;
+  width: 22%;
+  height: 100%;
+  background: linear-gradient(to bottom,
+    var(--curtain-red) 0%,
+    #6b1414 40%,
+    var(--curtain-shadow) 100%
+  );
+  z-index: 2;
+}
+
+.nf-curtain::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 18px,
+    rgba(0,0,0,0.15) 18px,
+    rgba(0,0,0,0.15) 20px
+  );
+}
+
+.nf-curtain-left {
+  left: 0;
+  border-radius: 0 0 60% 0;
+  transform-origin: top left;
+  box-shadow: inset -8px 0 20px rgba(0,0,0,0.5);
+}
+
+.nf-curtain-right {
+  right: 0;
+  border-radius: 0 0 0 60%;
+  transform-origin: top right;
+  box-shadow: inset 8px 0 20px rgba(0,0,0,0.5);
+}
+
+/* Curtain valance (top swag) */
+.nf-curtain-left::after,
+.nf-curtain-right::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 120%;
+  height: 30px;
+  background: var(--curtain-red);
+  left: -10%;
+}
+
+/* Spotlight beams */
+.nf-spotlight {
+  position: absolute;
+  bottom: 0;
+  width: 180px;
+  height: 100%;
+  opacity: 0.6;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.nf-spotlight-left {
+  left: 18%;
+  background: conic-gradient(from 95deg at 0% 100%, transparent 0deg, var(--spotlight) 15deg, transparent 30deg);
+}
+
+.nf-spotlight-right {
+  right: 18%;
+  background: conic-gradient(from 265deg at 100% 100%, transparent 0deg, var(--spotlight) 15deg, transparent 30deg);
+}
+
+/* Header content */
+.nf-header-content {
+  position: relative;
+  z-index: 3;
+  text-align: center;
+}
+
+.nf-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(4rem, 10vw, 7rem);
+  color: var(--cinema-cream);
+  letter-spacing: 0.12em;
+  line-height: 0.9;
+  text-shadow:
+    0 0 40px rgba(201, 168, 76, 0.4),
+    0 0 80px rgba(201, 168, 76, 0.15),
+    2px 2px 0 rgba(0,0,0,0.8);
+  margin: 0;
+}
+
+.nf-subtitle {
+  font-family: 'Crimson Pro', serif;
+  font-style: italic;
+  font-size: 1.1rem;
+  color: var(--cinema-gold);
+  letter-spacing: 0.3em;
+  margin: 0.3rem 0 0;
+  text-transform: uppercase;
+}
+
+/* Film strip dots below header */
+.nf-cinema-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 16px;
+  background: repeating-linear-gradient(
+    to right,
+    var(--cinema-black) 0px,
+    var(--cinema-black) 12px,
+    #1e1a14 12px,
+    #1e1a14 28px
+  );
+  z-index: 4;
+}
+
+/* ── Navigation ──────────────────────────────────────────────────────────── */
+.nf-nav {
+  background: var(--cinema-dark);
+  border-bottom: 1px solid var(--cinema-border);
+}
+
+.nf-nav-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.nf-nav-btn {
+  background: none;
+  border: none;
+  color: var(--cinema-muted);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  padding: 1.1rem 1.25rem;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s;
+  white-space: nowrap;
+}
+
+.nf-nav-btn::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--cinema-gold);
+  transform: scaleX(0);
+  transition: transform 0.2s;
+}
+
+.nf-nav-btn.active {
+  color: var(--cinema-cream);
+}
+
+.nf-nav-btn.active::after {
+  transform: scaleX(1);
+}
+
+.nf-nav-btn:hover {
+  color: var(--cinema-cream);
+}
+
+.nf-nav-search {
+  margin-left: auto;
+  padding: 0.5rem 0;
+}
+
+/* ── Genre Bar ───────────────────────────────────────────────────────────── */
+.nf-genre-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.nf-genre-btn {
+  background: var(--cinema-card);
+  border: 1px solid var(--cinema-border);
+  color: var(--cinema-muted);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  padding: 0.4rem 1rem;
+  border-radius: 2px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+
+.nf-genre-btn:hover {
+  border-color: var(--cinema-gold);
+  color: var(--cinema-gold);
+}
+
+.nf-genre-btn.active {
+  background: var(--cinema-red);
+  border-color: var(--cinema-red);
+  color: white;
+}
+
+/* ── Movies Grid ─────────────────────────────────────────────────────────── */
+.nf-movies-view, .nf-actors-view, .nf-watchlist-view {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1.5rem 3rem;
+}
+
+.nf-movies-grid, .nf-watchlist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+
+/* ── Movie Card ──────────────────────────────────────────────────────────── */
+.nf-movie-card {
+  cursor: pointer;
+  transition: transform 0.2s, opacity 0.5s;
+  opacity: 1;
+}
+
+.nf-movie-card.nf-fade-out {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+.nf-movie-card:hover {
+  transform: translateY(-4px);
+}
+
+.nf-movie-poster {
+  position: relative;
+  aspect-ratio: 2/3;
+  background: var(--cinema-card);
+  border-radius: 2px;
+  overflow: hidden;
+  border: 1px solid var(--cinema-border);
+}
+
+.nf-movie-poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.nf-movie-no-poster {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  background: #1a1510;
+}
+
+.nf-movie-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.nf-movie-card:hover .nf-movie-overlay {
+  opacity: 1;
+}
+
+.nf-movie-overlay-text {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: white;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border: 1px solid rgba(255,255,255,0.5);
+  padding: 0.4rem 0.8rem;
+}
+
+.nf-movie-status-badge {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.5rem;
+  border-radius: 1px;
+  text-transform: uppercase;
+}
+
+.nf-movie-status-badge.watched {
+  background: #1a6b3c;
+  color: #7dffa8;
+}
+
+.nf-movie-status-badge.watchlist {
+  background: #1a3a6b;
+  color: #7db8ff;
+}
+
+.nf-movie-rating-badge {
+  position: absolute;
+  bottom: 0.5rem;
+  right: 0.5rem;
+  background: var(--cinema-gold);
+  color: #000;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.4rem;
+  border-radius: 1px;
+}
+
+.nf-movie-info {
+  padding: 0.5rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.nf-movie-title {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--cinema-text);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.nf-movie-year {
+  font-size: 0.72rem;
+  color: var(--cinema-muted);
+}
+
+.nf-movie-comment {
+  font-family: 'Crimson Pro', serif;
+  font-style: italic;
+  font-size: 0.78rem;
+  color: var(--cinema-muted);
+  margin-top: 0.2rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.nf-skeleton {
+  background: var(--cinema-card);
+  border-radius: 2px;
+  animation: nf-pulse 1.5s ease-in-out infinite;
+  min-height: 240px;
+}
+
+@keyframes nf-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.8; }
+}
+
+/* ── Loading ─────────────────────────────────────────────────────────────── */
+.nf-loading {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 4rem;
+  color: var(--cinema-muted);
+}
+
+.nf-film-reel {
+  font-size: 3rem;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.nf-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 4rem;
+  color: var(--cinema-muted);
+  font-family: 'Crimson Pro', serif;
+  font-size: 1.1rem;
+  font-style: italic;
+}
+
+/* ── Movie Modal ─────────────────────────────────────────────────────────── */
+.nf-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.88);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  backdrop-filter: blur(4px);
+}
+
+.nf-modal {
+  background: var(--cinema-dark);
+  border: 1px solid var(--cinema-border);
+  border-radius: 4px;
+  width: 100%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  scrollbar-width: thin;
+  scrollbar-color: var(--cinema-border) transparent;
+}
+
+.nf-modal-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 200px;
+  background-size: cover;
+  background-position: center top;
+  opacity: 0.25;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+.nf-modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(0,0,0,0.6);
+  border: 1px solid var(--cinema-border);
+  color: var(--cinema-text);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 0.85rem;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.nf-modal-close:hover {
+  background: var(--cinema-red);
+  border-color: var(--cinema-red);
+  color: white;
+}
+
+.nf-modal-body {
+  display: flex;
+  gap: 2rem;
+  padding: 2rem;
+  position: relative;
+  z-index: 1;
+}
+
+.nf-modal-left {
+  flex-shrink: 0;
+  width: 180px;
+}
+
+.nf-modal-poster {
+  width: 100%;
+  border-radius: 2px;
+  display: block;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+
+.nf-modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.nf-action-btn {
+  background: var(--cinema-card);
+  border: 1px solid var(--cinema-border);
+  color: var(--cinema-text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 500;
+  padding: 0.55rem 0.75rem;
+  border-radius: 2px;
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.nf-action-btn:hover {
+  border-color: var(--cinema-gold);
+  color: var(--cinema-gold);
+}
+
+.nf-action-btn.active-watch {
+  background: #1a3a6b;
+  border-color: #3a6ab0;
+  color: #7db8ff;
+}
+
+.nf-action-btn.active-seen {
+  background: #1a4a2a;
+  border-color: #3a8a5a;
+  color: #7dffa8;
+}
+
+.nf-modal-right {
+  flex: 1;
+  min-width: 0;
+}
+
+.nf-modal-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.2rem;
+  letter-spacing: 0.06em;
+  color: var(--cinema-cream);
+  margin: 0 0 0.75rem;
+  line-height: 1;
+}
+
+.nf-modal-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.78rem;
+  color: var(--cinema-muted);
+  margin-bottom: 0.75rem;
+}
+
+.nf-modal-genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.nf-genre-tag {
+  background: rgba(201, 168, 76, 0.1);
+  border: 1px solid rgba(201, 168, 76, 0.3);
+  color: var(--cinema-gold);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.6rem;
+  border-radius: 1px;
+}
+
+.nf-modal-overview {
+  font-family: 'Crimson Pro', serif;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--cinema-text);
+  margin-bottom: 1rem;
+}
+
+.nf-modal-cast {
+  font-size: 0.8rem;
+  color: var(--cinema-muted);
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.nf-trailer-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--cinema-red);
+  color: white;
+  text-decoration: none;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.55rem 1rem;
+  border-radius: 2px;
+  transition: background 0.2s;
+  margin-bottom: 1.25rem;
+}
+
+.nf-trailer-btn:hover {
+  background: #a93226;
+}
+
+.nf-modal-divider {
+  height: 1px;
+  background: var(--cinema-border);
+  margin: 1rem 0;
+}
+
+.nf-modal-section {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.nf-modal-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cinema-gold);
+}
+
+.nf-comment-input {
+  background: var(--cinema-card);
+  border: 1px solid var(--cinema-border);
+  border-radius: 2px;
+  color: var(--cinema-text);
+  font-family: 'Crimson Pro', serif;
+  font-size: 0.95rem;
+  padding: 0.6rem 0.75rem;
+  resize: vertical;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.nf-comment-input:focus {
+  outline: none;
+  border-color: var(--cinema-gold);
+}
+
+.nf-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.nf-save-btn {
+  background: var(--cinema-gold);
+  color: #000;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.65rem 1.5rem;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.nf-save-btn:hover:not(:disabled) {
+  background: #b8963c;
+}
+
+.nf-save-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.nf-remove-btn {
+  background: transparent;
+  border: 1px solid var(--cinema-red);
+  color: var(--cinema-red);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.65rem 1.25rem;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.nf-remove-btn:hover {
+  background: var(--cinema-red);
+  color: white;
+}
+
+/* ── Stars ───────────────────────────────────────────────────────────────── */
+.nf-stars {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  flex-wrap: wrap;
+}
+
+.nf-star {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  color: var(--cinema-border);
+  cursor: pointer;
+  padding: 0.1rem;
+  transition: color 0.15s;
+  line-height: 1;
+}
+
+.nf-star.lit {
+  color: var(--cinema-gold);
+}
+
+.nf-star-val {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--cinema-gold);
+  margin-left: 0.4rem;
+}
+
+/* ── Search ──────────────────────────────────────────────────────────────── */
+.nf-search-wrap {
+  position: relative;
+}
+
+.nf-search-input {
+  background: var(--cinema-card);
+  border: 1px solid var(--cinema-border);
+  border-radius: 2px;
+  color: var(--cinema-text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  padding: 0.5rem 1rem;
+  width: 220px;
+  transition: border-color 0.2s;
+}
+
+.nf-search-input:focus {
+  outline: none;
+  border-color: var(--cinema-gold);
+}
+
+.nf-search-input::placeholder {
+  color: var(--cinema-muted);
+}
+
+.nf-search-loading {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--cinema-card);
+  border: 1px solid var(--cinema-border);
+  padding: 0.5rem 1rem;
+  font-size: 0.78rem;
+  color: var(--cinema-muted);
+  border-radius: 2px;
+  z-index: 200;
+}
+
+.nf-search-results {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--cinema-dark);
+  border: 1px solid var(--cinema-border);
+  border-radius: 2px;
+  z-index: 200;
+  max-height: 320px;
+  overflow-y: auto;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+
+.nf-search-result {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  cursor: pointer;
+  transition: background 0.15s;
+  border-bottom: 1px solid var(--cinema-border);
+}
+
+.nf-search-result:last-child { border-bottom: none; }
+
+.nf-search-result:hover {
+  background: var(--cinema-card);
+}
+
+.nf-search-result img {
+  width: 36px;
+  height: 54px;
+  object-fit: cover;
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+
+.nf-search-no-img {
+  width: 36px;
+  height: 54px;
+  background: var(--cinema-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.nf-search-result-title {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--cinema-text);
+  display: block;
+}
+
+.nf-search-result-year {
+  font-size: 0.72rem;
+  color: var(--cinema-muted);
+  display: block;
+}
+
+/* ── Actors ──────────────────────────────────────────────────────────────── */
+.nf-tier-filter {
+  display: flex;
+  gap: 0.5rem;
+  padding: 1rem 0;
+  flex-wrap: wrap;
+}
+
+.nf-tier-btn {
+  background: var(--cinema-card);
+  border: 1px solid var(--cinema-border);
+  color: var(--cinema-muted);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.45rem 1rem;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.nf-tier-btn:hover {
+  color: var(--cinema-cream);
+  border-color: var(--cinema-muted);
+}
+
+.nf-tier-btn.active {
+  color: white;
+  border-color: transparent;
+}
+
+.nf-tier-section {
+  margin-bottom: 3rem;
+}
+
+.nf-tier-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.nf-tier-line {
+  flex: 1;
+  height: 1px;
+  opacity: 0.4;
+}
+
+.nf-tier-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.4rem;
+  letter-spacing: 0.15em;
+  white-space: nowrap;
+  margin: 0;
+}
+
+.nf-actors-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.25rem;
+}
+
+/* ── Actor Card ──────────────────────────────────────────────────────────── */
+.nf-actor-card {
+  background: var(--cinema-card);
+  border: 1px solid var(--cinema-border);
+  border-radius: 2px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.nf-actor-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--cinema-gold);
+}
+
+.nf-actor-photo {
+  position: relative;
+  aspect-ratio: 2/3;
+  overflow: hidden;
+  background: #1a1510;
+}
+
+.nf-actor-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s;
+}
+
+.nf-actor-card:hover .nf-actor-photo img {
+  transform: scale(1.04);
+}
+
+.nf-actor-no-photo {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 4rem;
+  color: var(--cinema-border);
+  background: linear-gradient(135deg, #1a1510, #120e0a);
+}
+
+.nf-actor-tier-badge {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  padding: 0.15rem 0.5rem;
+  border-radius: 1px;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+}
+
+.nf-actor-info {
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.nf-actor-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 0.06em;
+  color: var(--cinema-cream);
+  line-height: 1;
+}
+
+.nf-actor-desc {
+  font-family: 'Crimson Pro', serif;
+  font-style: italic;
+  font-size: 0.95rem;
+  color: var(--cinema-muted);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── Actor Modal ─────────────────────────────────────────────────────────── */
+.nf-actor-modal {
+  background: var(--cinema-dark);
+  border: 1px solid var(--cinema-border);
+  border-radius: 4px;
+  width: 100%;
+  max-width: 860px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  scrollbar-width: thin;
+  scrollbar-color: var(--cinema-border) transparent;
+}
+
+.nf-actor-modal-body {
+  display: flex;
+  gap: 2rem;
+  padding: 2rem;
+}
+
+.nf-actor-modal-left {
+  flex-shrink: 0;
+  width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.nf-actor-modal-photo {
+  width: 100%;
+  border-radius: 2px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  display: block;
+}
+
+.nf-actor-modal-initial {
+  width: 100%;
+  aspect-ratio: 2/3;
+  background: linear-gradient(135deg, #1a1510, #120e0a);
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 5rem;
+  color: var(--cinema-border);
+}
+
+.nf-actor-modal-tier {
+  text-align: center;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  color: white;
+  padding: 0.4rem 0.75rem;
+  border-radius: 2px;
+}
+
+.nf-actor-modal-bio {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.76rem;
+  color: var(--cinema-muted);
+}
+
+.nf-actor-modal-right {
+  flex: 1;
+  min-width: 0;
+}
+
+.nf-actor-modal-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.8rem;
+  letter-spacing: 0.06em;
+  color: var(--cinema-cream);
+  margin: 0 0 0.75rem;
+  line-height: 1;
+}
+
+.nf-actor-modal-nick-desc {
+  font-family: 'Crimson Pro', serif;
+  font-style: italic;
+  font-size: 1.1rem;
+  color: var(--cinema-gold);
+  line-height: 1.6;
+  margin-bottom: 1.25rem;
+  border-left: 2px solid var(--cinema-gold);
+  padding-left: 1rem;
+}
+
+.nf-actor-modal-films {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.88rem;
+  color: var(--cinema-text);
+  line-height: 1.6;
+}
+
+.nf-actor-modal-biography {
+  margin-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-family: 'Crimson Pro', serif;
+  font-size: 0.95rem;
+  color: var(--cinema-muted);
+  line-height: 1.7;
+}
+
+.nf-actor-modal-credits {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.nf-actor-credits-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  gap: 0.6rem;
+}
+
+.nf-actor-credit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  text-align: center;
+}
+
+.nf-actor-credit img {
+  width: 100%;
+  aspect-ratio: 2/3;
+  object-fit: cover;
+  border-radius: 1px;
+  border: 1px solid var(--cinema-border);
+}
+
+.nf-credit-no-img {
+  width: 100%;
+  aspect-ratio: 2/3;
+  background: var(--cinema-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  border-radius: 1px;
+}
+
+.nf-actor-credit span {
+  font-size: 0.65rem;
+  color: var(--cinema-muted);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── Watchlist ───────────────────────────────────────────────────────────── */
+.nf-watchlist-section {
+  margin-bottom: 2.5rem;
+}
+
+.nf-watchlist-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.4rem;
+  letter-spacing: 0.1em;
+  color: var(--cinema-cream);
+  margin: 1.5rem 0 1rem;
+  border-bottom: 1px solid var(--cinema-border);
+  padding-bottom: 0.5rem;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .nf-modal-body, .nf-actor-modal-body {
+    flex-direction: column;
+  }
+
+  .nf-modal-left, .nf-actor-modal-left {
+    width: 140px;
+  }
+
+  .nf-movies-grid, .nf-watchlist-grid {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .nf-actors-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+
+  .nf-nav-search {
+    display: none;
+  }
+
+  .nf-cinema-header {
+    height: 160px;
+  }
+}
+
+/* ── Loading Bar ─────────────────────────────────────────────────────────── */
+.nf-loading-bar {
+  height: 2px;
+  background: var(--cinema-border);
+  margin: 0 1.5rem 1rem;
+  border-radius: 1px;
+  overflow: hidden;
+}
+.nf-loading-bar-inner {
+  height: 100%;
+  background: var(--cinema-gold);
+  animation: nf-loading-slide 1.5s ease-in-out infinite;
+  width: 40%;
+}
+@keyframes nf-loading-slide {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(350%); }
+}
