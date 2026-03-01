@@ -528,7 +528,7 @@ const ACTORS = [
   { name: 'Gary Oldman', tier: 'A', desc: 'Disappears completely into every role. The benchmark for chameleon acting.', films: 'Leon: The Professional, The Dark Knight, True Romance, JFK, Tinker Tailor Soldier Spy, Darkest Hour' },
   { name: 'Harvey Keitel', tier: 'A', desc: "Scorsese's original muse. Showed everyone how to do raw and real.", films: 'Pulp Fiction, Reservoir Dogs, Taxi Driver, Mean Streets, Bad Lieutenant, From Dusk Till Dawn, The Piano' },
   { name: 'Julia Roberts', tier: 'A', desc: 'The last true Hollywood movie star in the classic sense.', films: "Pretty Woman, Erin Brockovich, My Best Friend's Wedding, Notting Hill, Ocean's Eleven, Charlie Wilson's War" },
-  { name: 'Natalie Portman', tier: 'A', desc: 'Started as a 12-year-old opposite Keitel and never looked back. Black Swan is one of the most committed performances ever put on film.', films: 'Leon: The Professional, Black Swan, Closer, V for Vendetta, Jackie' },
+  { name: 'Natalie Portman', tier: 'A', desc: 'Started as a 12-year-old opposite Keitel and never looked back.', films: 'Leon: The Professional, Black Swan, Closer, V for Vendetta, Jackie' },
   { name: 'Christopher Walken', tier: 'A', desc: 'Nobody on earth delivers a line like Walken. Every scene is an event.', films: 'The Deer Hunter, True Romance, King of New York, Catch Me If You Can' },
   { name: 'Christian Bale', tier: 'A', desc: 'Commits harder than anyone alive. Lost 60 pounds for a role. Twice.', films: 'Batman Begins, The Dark Knight, The Fighter, American Psycho, The Prestige, 3:10 to Yuma, Rescue Dawn' },
   { name: 'Robin Williams', tier: 'A', desc: 'Funniest man alive and one of the most emotionally devastating actors alive. Same person.', films: "Good Will Hunting, Dead Poets Society, Aladdin, Awakenings, Mrs. Doubtfire, Good Morning Vietnam, The Fisher King" },
@@ -576,15 +576,12 @@ const TIER_COLORS = { S: '#f1c40f', A: '#c0392b', B: '#2980b9', G: '#8e44ad' }
 
 const searchMovie = async ({ title, year, tmdbId }) => {
   try {
-    // Use direct ID lookup if provided (avoids search ambiguity)
     if (tmdbId) {
       const data = await tmdb(`/movie/${tmdbId}`)
       return data?.id ? data : null
     }
-    // Search without year param (year param can filter out valid results)
     const data = await tmdb('/search/movie', { query: title, language: 'en-US' })
     const results = data.results || []
-    // Try to match within 1 year to handle release date variations
     const match = results.find(r => {
       const ry = parseInt(r.release_date?.slice(0,4))
       return Math.abs(ry - year) <= 1
@@ -609,7 +606,7 @@ function StarRating({ value, onChange, readonly = false }) {
   )
 }
 
-function MovieCard({ movie, entry, onOpen }) {
+function MovieCard({ movie, entry, communityEntries, onOpen }) {
   const poster = movie.poster_path ? `${TMDB_IMG}/w342${movie.poster_path}` : null
   const cardRef = useRef()
   const [faded, setFaded] = useState(false)
@@ -618,12 +615,18 @@ function MovieCard({ movie, entry, onOpen }) {
     const el = cardRef.current
     if (!el) return
     const observer = new IntersectionObserver(
-      ([entry]) => { setFaded(!entry.isIntersecting) },
-      { threshold: 0, rootMargin: '0px 0px 0px 0px' }
+      ([e]) => { setFaded(!e.isIntersecting) },
+      { threshold: 0 }
     )
     observer.observe(el)
     return () => observer.disconnect()
   }, [])
+
+  // Calculate community average from all entries with ratings
+  const ratedEntries = (communityEntries || []).filter(e => e.user_rating)
+  const communityAvg = ratedEntries.length > 0
+    ? (ratedEntries.reduce((s, e) => s + e.user_rating, 0) / ratedEntries.length).toFixed(1)
+    : null
 
   return (
     <div ref={cardRef} className={`nf-movie-card${faded ? ' nf-fade-out' : ''}`} onClick={() => onOpen(movie, entry)}>
@@ -631,6 +634,12 @@ function MovieCard({ movie, entry, onOpen }) {
         {poster ? <img src={poster} alt={movie.title} loading="lazy" /> : <div className="nf-movie-no-poster">🎬</div>}
         {entry && <div className={`nf-movie-status-badge ${entry.status}`}>{entry.status === 'watched' ? '✓ Watched' : '+ Watchlist'}</div>}
         {entry?.user_rating && <div className="nf-movie-rating-badge">{entry.user_rating}/10</div>}
+        {communityAvg && !entry?.user_rating && (
+          <div className="nf-movie-community-badge">★ {communityAvg} ({ratedEntries.length})</div>
+        )}
+        {communityAvg && entry?.user_rating && (
+          <div className="nf-movie-community-badge">★ {communityAvg} ({ratedEntries.length})</div>
+        )}
         <div className="nf-movie-overlay"><span className="nf-movie-overlay-text">View Details</span></div>
       </div>
       <div className="nf-movie-info">
@@ -641,18 +650,37 @@ function MovieCard({ movie, entry, onOpen }) {
   )
 }
 
-function MovieModal({ movie, entry, userId, onClose, onSave }) {
+function MovieModal({ movie, entry, userId, allEntries, onClose, onSave }) {
   const [status, setStatus] = useState(entry?.status || null)
   const [rating, setRating] = useState(entry?.user_rating || 0)
   const [comment, setComment] = useState(entry?.comment || '')
   const [saving, setSaving] = useState(false)
   const [details, setDetails] = useState(null)
+  const [communityProfiles, setCommunityProfiles] = useState({})
 
   useEffect(() => { tmdb(`/movie/${movie.id}`, { append_to_response: 'videos,credits' }).then(setDetails) }, [movie.id])
+
+  // Load display names for community entries
+  useEffect(() => {
+    const otherEntries = (allEntries || []).filter(e => e.user_id !== userId)
+    if (!otherEntries.length) return
+    const ids = [...new Set(otherEntries.map(e => e.user_id))]
+    supabase.from('profiles').select('id, display_name').in('id', ids).then(({ data }) => {
+      if (!data) return
+      const map = {}
+      data.forEach(p => { map[p.id] = p.display_name || 'Nicktopian' })
+      setCommunityProfiles(map)
+    })
+  }, [allEntries, userId])
 
   const trailer = details?.videos?.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube')
   const director = details?.credits?.crew?.find(c => c.job === 'Director')
   const cast = details?.credits?.cast?.slice(0, 5)
+
+  // Community entries = other users who have rated/reviewed this movie
+  const communityReviews = (allEntries || []).filter(e =>
+    e.user_id !== userId && (e.user_rating || e.comment)
+  )
 
   const save = async () => {
     if (!userId) return
@@ -704,6 +732,28 @@ function MovieModal({ movie, entry, userId, onClose, onSave }) {
               {entry && <button className="nf-remove-btn" onClick={remove}>Remove</button>}
               <button className="nf-save-btn" onClick={save} disabled={saving || !status}>{saving ? 'Saving...' : 'Save'}</button>
             </div>
+
+            {/* Community Reviews */}
+            {communityReviews.length > 0 && (
+              <>
+                <div className="nf-modal-divider" />
+                <div className="nf-modal-section">
+                  <span className="nf-modal-label">What Others Think ({communityReviews.length})</span>
+                  <div className="nf-community-reviews">
+                    {communityReviews.map((r, i) => (
+                      <div key={i} className="nf-community-review">
+                        <div className="nf-review-header">
+                          <span className="nf-review-name">{communityProfiles[r.user_id] || 'Nicktopian'}</span>
+                          {r.user_rating && <span className="nf-review-rating">★ {r.user_rating}/10</span>}
+                        </div>
+                        <div className="nf-review-status">{r.status === 'watched' ? '✓ Watched' : '+ Watchlist'}</div>
+                        {r.comment && <div className="nf-review-comment">"{r.comment}"</div>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -813,16 +863,23 @@ function SearchBar({ onSelect }) {
   )
 }
 
-function WatchlistCard({ entry, onOpen }) {
+function WatchlistCard({ entry, communityEntries, onOpen }) {
   const [movie, setMovie] = useState(null)
   useEffect(() => { tmdb(`/movie/${entry.tmdb_id}`).then(setMovie) }, [entry.tmdb_id])
   if (!movie) return <div className="nf-movie-card nf-skeleton" />
+
+  const ratedEntries = (communityEntries || []).filter(e => e.user_rating)
+  const communityAvg = ratedEntries.length > 0
+    ? (ratedEntries.reduce((s, e) => s + e.user_rating, 0) / ratedEntries.length).toFixed(1)
+    : null
+
   return (
     <div className="nf-movie-card" onClick={() => onOpen(movie, entry)}>
       <div className="nf-movie-poster">
         {entry.poster_path ? <img src={`${TMDB_IMG}/w342${entry.poster_path}`} alt={entry.title} loading="lazy" /> : <div className="nf-movie-no-poster">🎬</div>}
         <div className={`nf-movie-status-badge ${entry.status}`}>{entry.status === 'watched' ? '✓ Watched' : '+ Watchlist'}</div>
         {entry.user_rating && <div className="nf-movie-rating-badge">{entry.user_rating}/10</div>}
+        {communityAvg && <div className="nf-movie-community-badge">★ {communityAvg} ({ratedEntries.length})</div>}
         <div className="nf-movie-overlay"><span className="nf-movie-overlay-text">View Details</span></div>
       </div>
       <div className="nf-movie-info">
@@ -838,13 +895,13 @@ export default function Nickflix({ user }) {
   const [activeGenre, setActiveGenre] = useState('Crime')
   const [movies, setMovies] = useState([])
   const [watchlist, setWatchlistData] = useState([])
+  const [allWatchlist, setAllWatchlist] = useState([]) // all users' entries
   const [selectedMovie, setSelectedMovie] = useState(null)
   const [selectedMovieEntry, setSelectedMovieEntry] = useState(null)
   const [selectedActor, setSelectedActor] = useState(null)
   const [selectedActorPhoto, setSelectedActorPhoto] = useState(null)
   const [loading, setLoading] = useState(false)
   const [activeTier, setActiveTier] = useState('All')
-  const genreRef = useRef(null)
 
   const loadWatchlist = useCallback(async () => {
     if (!user?.id) return
@@ -852,7 +909,15 @@ export default function Nickflix({ user }) {
     setWatchlistData(data || [])
   }, [user?.id])
 
-  useEffect(() => { loadWatchlist() }, [loadWatchlist])
+  const loadAllWatchlist = useCallback(async () => {
+    const { data } = await supabase.from('watchlist').select('*')
+    setAllWatchlist(data || [])
+  }, [])
+
+  useEffect(() => {
+    loadWatchlist()
+    loadAllWatchlist()
+  }, [loadWatchlist, loadAllWatchlist])
 
   const fetchMovies = useCallback(async (genre) => {
     setLoading(true)
@@ -874,8 +939,16 @@ export default function Nickflix({ user }) {
     if (view === 'movies') fetchMovies(activeGenre)
   }, [activeGenre, view])
 
+  // Build maps
   const watchlistMap = {}
   watchlist.forEach(w => { watchlistMap[w.tmdb_id] = w })
+
+  // Group all entries by tmdb_id for community data
+  const allEntriesMap = {}
+  allWatchlist.forEach(w => {
+    if (!allEntriesMap[w.tmdb_id]) allEntriesMap[w.tmdb_id] = []
+    allEntriesMap[w.tmdb_id].push(w)
+  })
 
   const openMovie = (movie, entry) => {
     setSelectedMovie(movie)
@@ -885,6 +958,11 @@ export default function Nickflix({ user }) {
   const filteredActors = activeTier === 'All' ? ACTORS : ACTORS.filter(a => a.tier === activeTier)
   const watchedMovies = watchlist.filter(w => w.status === 'watched')
   const toWatchMovies = watchlist.filter(w => w.status === 'watchlist')
+
+  const handleSave = () => {
+    loadWatchlist()
+    loadAllWatchlist()
+  }
 
   return (
     <div className="nickflix">
@@ -899,6 +977,7 @@ export default function Nickflix({ user }) {
         </div>
       </div>
 
+      {/* Sticky tab nav */}
       <div className="nf-nav">
         <div className="nf-nav-inner">
           {[{ id: 'movies', label: '🎬 Browse' }, { id: 'actors', label: '⭐ Actors' }, { id: 'watchlist', label: `📋 My List (${watchlist.length})` }].map(tab => (
@@ -910,18 +989,30 @@ export default function Nickflix({ user }) {
 
       {view === 'movies' && (
         <div className="nf-movies-view">
-          <div className="nf-genre-bar" ref={genreRef}>
-            {GENRES.map(g => (
-              <button key={g} className={`nf-genre-btn ${activeGenre === g ? 'active' : ''}`} onClick={() => setActiveGenre(g)}>{g}</button>
-            ))}
+          {/* Sticky genre bar */}
+          <div className="nf-genre-bar-wrap">
+            <div className="nf-genre-bar">
+              {GENRES.map(g => (
+                <button key={g} className={`nf-genre-btn ${activeGenre === g ? 'active' : ''}`} onClick={() => setActiveGenre(g)}>{g}</button>
+              ))}
+            </div>
           </div>
+
           {loading && movies.length === 0 ? (
             <div className="nf-loading"><div className="nf-film-reel">🎞️</div><p>Loading films...</p></div>
           ) : (
             <>
               {loading && <div className="nf-loading-bar"><div className="nf-loading-bar-inner" /></div>}
               <div className="nf-movies-grid">
-                {movies.map(movie => <MovieCard key={movie.id} movie={movie} entry={watchlistMap[movie.id]} onOpen={openMovie} />)}
+                {movies.map(movie => (
+                  <MovieCard
+                    key={movie.id}
+                    movie={movie}
+                    entry={watchlistMap[movie.id]}
+                    communityEntries={allEntriesMap[movie.id]}
+                    onOpen={openMovie}
+                  />
+                ))}
               </div>
             </>
           )}
@@ -968,14 +1059,41 @@ export default function Nickflix({ user }) {
             </div>
           ) : (
             <>
-              {toWatchMovies.length > 0 && <div className="nf-watchlist-section"><h2 className="nf-watchlist-title">📋 To Watch ({toWatchMovies.length})</h2><div className="nf-watchlist-grid">{toWatchMovies.map(w => <WatchlistCard key={w.id} entry={w} onOpen={openMovie} />)}</div></div>}
-              {watchedMovies.length > 0 && <div className="nf-watchlist-section"><h2 className="nf-watchlist-title">✓ Watched ({watchedMovies.length})</h2><div className="nf-watchlist-grid">{watchedMovies.map(w => <WatchlistCard key={w.id} entry={w} onOpen={openMovie} />)}</div></div>}
+              {toWatchMovies.length > 0 && (
+                <div className="nf-watchlist-section">
+                  <h2 className="nf-watchlist-title">📋 To Watch ({toWatchMovies.length})</h2>
+                  <div className="nf-watchlist-grid">
+                    {toWatchMovies.map(w => (
+                      <WatchlistCard key={w.id} entry={w} communityEntries={allEntriesMap[w.tmdb_id]} onOpen={openMovie} />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {watchedMovies.length > 0 && (
+                <div className="nf-watchlist-section">
+                  <h2 className="nf-watchlist-title">✓ Watched ({watchedMovies.length})</h2>
+                  <div className="nf-watchlist-grid">
+                    {watchedMovies.map(w => (
+                      <WatchlistCard key={w.id} entry={w} communityEntries={allEntriesMap[w.tmdb_id]} onOpen={openMovie} />
+                    ))}
+                  </div>
+                </div>
+              )}
             </>
           )}
         </div>
       )}
 
-      {selectedMovie && <MovieModal movie={selectedMovie} entry={selectedMovieEntry} userId={user?.id} onClose={() => { setSelectedMovie(null); setSelectedMovieEntry(null) }} onSave={loadWatchlist} />}
+      {selectedMovie && (
+        <MovieModal
+          movie={selectedMovie}
+          entry={selectedMovieEntry}
+          userId={user?.id}
+          allEntries={allEntriesMap[selectedMovie.id]}
+          onClose={() => { setSelectedMovie(null); setSelectedMovieEntry(null) }}
+          onSave={handleSave}
+        />
+      )}
       {selectedActor && <ActorModal actor={selectedActor} photo={selectedActorPhoto} onClose={() => { setSelectedActor(null); setSelectedActorPhoto(null) }} />}
     </div>
   )
