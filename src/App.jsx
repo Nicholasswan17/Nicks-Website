@@ -9,6 +9,7 @@ import Settings from './pages/Settings'
 import Navbar from './components/Navbar'
 import './styles/global.css'
 import Nickflix from './components/Nickflix'
+import Nickfit from './components/Nickfit'
 
 async function fetchProfile(userId) {
   const { data } = await supabase
@@ -86,6 +87,9 @@ export default function App() {
       case 'nickflix': return (
         <Nickflix user={enrichedUser} />
       )
+      case 'nickfit': return (
+  <Nickfit user={enrichedUser} />
+)
       case 'nickchat': return (
         <Nickchat
           user={enrichedUser}

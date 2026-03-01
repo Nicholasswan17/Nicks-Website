@@ -1,0 +1,356 @@
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&display=swap');
+
+/* ─── Base ───────────────────────────────────────────────────────────────────── */
+.nickfit {
+  min-height: 100vh;
+  background: #0a0a0a;
+  color: #f0f0f0;
+  font-family: 'Barlow', sans-serif;
+}
+
+/* ─── Header ─────────────────────────────────────────────────────────────────── */
+.nkf-header {
+  position: relative;
+  padding: 52px 24px 40px;
+  text-align: center;
+  overflow: hidden;
+}
+.nkf-header-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(232,64,64,0.1) 0%, transparent 70%),
+    repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.015) 39px, rgba(255,255,255,0.015) 40px);
+}
+.nkf-header-content { position: relative; z-index: 1; }
+.nkf-header-eyebrow { font-family: 'Barlow Condensed', sans-serif; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.3em; color: #555; margin-bottom: 6px; text-transform: uppercase; }
+.nkf-title { font-family: 'Barlow Condensed', sans-serif; font-size: clamp(3rem, 10vw, 6.5rem); font-weight: 900; letter-spacing: -0.02em; line-height: 1; margin: 0 0 8px; color: #fff; text-transform: uppercase; }
+.nkf-subtitle { font-size: 0.9rem; color: #555; letter-spacing: 0.05em; margin: 0; }
+
+/* ─── Main Nav ───────────────────────────────────────────────────────────────── */
+.nkf-main-nav {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 16px 28px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid #1a1a1a;
+  margin-bottom: 0;
+}
+.nkf-main-nav-btn {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.95rem; font-weight: 700; letter-spacing: 0.06em;
+  padding: 10px 20px;
+  border: none; border-radius: 4px;
+  background: transparent; color: #555; cursor: pointer;
+  transition: all 0.15s ease;
+}
+.nkf-main-nav-btn:hover { color: #aaa; background: #141414; }
+.nkf-main-nav-btn.active { background: #1e1e1e; color: #fff; }
+
+/* ─── Content ────────────────────────────────────────────────────────────────── */
+.nkf-content { max-width: 900px; margin: 0 auto; padding: 28px 20px 80px; }
+
+/* ─── Day Nav (Library) ──────────────────────────────────────────────────────── */
+.nkf-day-nav { display: flex; justify-content: center; gap: 10px; padding: 0 0 24px; flex-wrap: wrap; }
+.nkf-day-btn {
+  display: flex; align-items: center; gap: 7px;
+  font-family: 'Barlow Condensed', sans-serif; font-size: 1.05rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 10px 24px; border: 2px solid; border-radius: 4px;
+  background: transparent; cursor: pointer; transition: all 0.15s ease;
+}
+.nkf-day-btn:hover { opacity: 0.8; transform: translateY(-1px); }
+
+/* ─── Day Title Row ──────────────────────────────────────────────────────────── */
+.nkf-day-title-row { display: flex; align-items: center; gap: 14px; margin-bottom: 28px; }
+.nkf-day-accent { width: 5px; height: 32px; border-radius: 2px; flex-shrink: 0; }
+.nkf-day-title { font-family: 'Barlow Condensed', sans-serif; font-size: 2rem; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; margin: 0; }
+
+/* ─── Muscle Section ─────────────────────────────────────────────────────────── */
+.nkf-muscle-section { margin-bottom: 36px; }
+.nkf-muscle-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.nkf-muscle-line { flex: 1; height: 1px; opacity: 0.35; }
+.nkf-muscle-label { font-family: 'Barlow Condensed', sans-serif; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.25em; color: #666; white-space: nowrap; }
+.nkf-exercises { display: flex; flex-direction: column; gap: 7px; }
+
+/* ─── Exercise Card ──────────────────────────────────────────────────────────── */
+.nkf-exercise-card { background: #141414; border: 1px solid #1e1e1e; border-radius: 6px; overflow: hidden; transition: border-color 0.15s; }
+.nkf-exercise-card.expanded { border-color: #2a2a2a; }
+.nkf-exercise-card:hover { border-color: #252525; }
+.nkf-exercise-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; cursor: pointer; gap: 12px; }
+.nkf-exercise-main { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.nkf-exercise-name { font-family: 'Barlow Condensed', sans-serif; font-size: 1.1rem; font-weight: 700; letter-spacing: 0.02em; color: #f0f0f0; }
+.nkf-exercise-muscle { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; opacity: 0.9; }
+.nkf-exercise-controls { display: flex; align-items: center; gap: 9px; flex-shrink: 0; }
+.nkf-video-btn { font-family: 'Barlow Condensed', sans-serif; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 5px 11px; border: 1.5px solid; border-radius: 3px; background: transparent; cursor: pointer; transition: opacity 0.15s; white-space: nowrap; }
+.nkf-video-btn:hover { opacity: 0.7; }
+.nkf-chevron { font-size: 0.6rem; color: #555; transition: transform 0.2s ease; display: inline-block; }
+
+/* ─── Video ──────────────────────────────────────────────────────────────────── */
+.nkf-video-wrap { padding: 0 16px 14px; display: flex; justify-content: center; }
+.nkf-video-wide { width: 100%; max-width: 560px; height: 315px; border-radius: 6px; border: none; }
+.nkf-video-short { width: 280px; height: 498px; max-width: 100%; border-radius: 6px; border: none; }
+
+/* ─── Notes & Exercise Body ──────────────────────────────────────────────────── */
+.nkf-exercise-body { padding: 0 16px 16px; border-top: 1px solid #1a1a1a; }
+.nkf-notes-label { font-family: 'Barlow Condensed', sans-serif; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.2em; color: #555; text-transform: uppercase; margin: 14px 0 9px; }
+.nkf-notes-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+.nkf-note-item { display: flex; align-items: flex-start; gap: 9px; font-size: 0.875rem; color: #aaa; line-height: 1.5; }
+.nkf-note-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; margin-top: 7px; opacity: 0.8; }
+
+/* ─── Comments ───────────────────────────────────────────────────────────────── */
+.nkf-comments { margin-top: 20px; border-top: 1px solid #1e1e1e; padding-top: 16px; }
+.nkf-comments-header { font-family: 'Barlow Condensed', sans-serif; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.12em; color: #666; text-transform: uppercase; margin-bottom: 12px; }
+.nkf-comment-input-row { display: flex; gap: 8px; margin-bottom: 14px; }
+.nkf-comment-input { flex: 1; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 4px; padding: 8px 12px; color: #ddd; font-family: 'Barlow', sans-serif; font-size: 0.875rem; outline: none; }
+.nkf-comment-input:focus { border-color: #444; }
+.nkf-comment-input::placeholder { color: #444; }
+.nkf-comment-post-btn { font-family: 'Barlow Condensed', sans-serif; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em; padding: 8px 16px; background: #222; border: 1px solid #333; border-radius: 4px; color: #aaa; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+.nkf-comment-post-btn:hover:not(:disabled) { background: #2a2a2a; color: #fff; }
+.nkf-comment-post-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.nkf-comments-loading, .nkf-comments-empty { font-size: 0.8rem; color: #444; padding: 8px 0; }
+.nkf-comments-list { display: flex; flex-direction: column; gap: 10px; }
+.nkf-comment-item { background: #111; border: 1px solid #1e1e1e; border-radius: 4px; padding: 10px 12px; }
+.nkf-comment-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+.nkf-comment-name { font-family: 'Barlow Condensed', sans-serif; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.05em; color: #888; }
+.nkf-comment-time { font-size: 0.72rem; color: #444; }
+.nkf-comment-delete { margin-left: auto; background: none; border: none; color: #444; cursor: pointer; font-size: 0.7rem; padding: 0; }
+.nkf-comment-delete:hover { color: #e84040; }
+.nkf-comment-text { font-size: 0.88rem; color: #bbb; line-height: 1.5; }
+
+/* ─── Shared Utilities ───────────────────────────────────────────────────────── */
+.nkf-back-btn { background: none; border: 1px solid #333; border-radius: 4px; color: #888; font-family: 'Barlow', sans-serif; font-size: 0.85rem; padding: 7px 14px; cursor: pointer; transition: all 0.15s; }
+.nkf-back-btn:hover { border-color: #555; color: #ccc; }
+.nkf-section-title { font-family: 'Barlow Condensed', sans-serif; font-size: 1.8rem; font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase; margin: 0 0 4px; }
+.nkf-section-sub { font-size: 0.85rem; color: #555; margin: 0 0 24px; }
+.nkf-loading-msg { color: #555; font-size: 0.9rem; padding: 40px 0; text-align: center; }
+.nkf-empty-state { text-align: center; padding: 60px 20px; color: #555; }
+.nkf-empty-icon { font-size: 3rem; margin-bottom: 16px; }
+.nkf-empty-state p { font-size: 0.95rem; margin: 0 0 16px; }
+
+/* ─── Programs ───────────────────────────────────────────────────────────────── */
+.nkf-programs-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; gap: 12px; flex-wrap: wrap; }
+.nkf-new-program-btn { font-family: 'Barlow Condensed', sans-serif; font-size: 0.9rem; font-weight: 700; letter-spacing: 0.08em; padding: 9px 20px; background: #1e1e1e; border: 1px solid #333; border-radius: 4px; color: #ccc; cursor: pointer; transition: all 0.15s; }
+.nkf-new-program-btn:hover { background: #2a2a2a; color: #fff; border-color: #555; }
+.nkf-programs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+.nkf-program-card { background: #141414; border: 1px solid #222; border-radius: 8px; padding: 18px; transition: border-color 0.15s; }
+.nkf-program-card:hover { border-color: #333; }
+.nkf-program-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+.nkf-program-card-name { font-family: 'Barlow Condensed', sans-serif; font-size: 1.15rem; font-weight: 700; letter-spacing: 0.03em; color: #eee; line-height: 1.2; }
+.nkf-program-delete-btn { background: none; border: none; color: #444; cursor: pointer; font-size: 0.8rem; flex-shrink: 0; padding: 2px; }
+.nkf-program-delete-btn:hover { color: #e84040; }
+.nkf-program-card-exercises { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.nkf-program-ex-tag { font-size: 0.72rem; padding: 3px 8px; border: 1px solid; border-radius: 3px; color: #888; background: #0d0d0d; }
+.nkf-program-ex-more { font-size: 0.72rem; color: #555; padding: 3px 0; }
+.nkf-program-card-footer { display: flex; align-items: center; justify-content: space-between; }
+.nkf-program-ex-count { font-size: 0.78rem; color: #555; }
+.nkf-train-btn { font-family: 'Barlow Condensed', sans-serif; font-size: 0.85rem; font-weight: 700; letter-spacing: 0.06em; padding: 8px 18px; background: #1e1e1e; border: 1px solid #333; border-radius: 4px; color: #ccc; cursor: pointer; transition: all 0.15s; }
+.nkf-train-btn:hover { background: #2a2a2a; color: #fff; }
+
+/* ─── Program Builder ────────────────────────────────────────────────────────── */
+.nkf-builder-header { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+.nkf-builder-title { font-family: 'Barlow Condensed', sans-serif; font-size: 1.6rem; font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase; margin: 0; }
+.nkf-program-name-input { width: 100%; background: #141414; border: 1px solid #2a2a2a; border-radius: 6px; padding: 12px 16px; color: #eee; font-family: 'Barlow', sans-serif; font-size: 1rem; outline: none; margin-bottom: 20px; box-sizing: border-box; }
+.nkf-program-name-input:focus { border-color: #444; }
+.nkf-program-name-input::placeholder { color: #444; }
+.nkf-builder-layout { display: grid; grid-template-columns: 1fr 340px; gap: 20px; }
+.nkf-builder-section-label { font-family: 'Barlow Condensed', sans-serif; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.2em; color: #555; text-transform: uppercase; margin-bottom: 14px; }
+.nkf-day-tabs { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+.nkf-day-tab { font-family: 'Barlow Condensed', sans-serif; font-size: 0.85rem; font-weight: 700; letter-spacing: 0.08em; padding: 7px 14px; border: 1.5px solid; border-radius: 3px; background: transparent; cursor: pointer; transition: all 0.15s; }
+.nkf-builder-muscle { margin-bottom: 16px; }
+.nkf-builder-muscle-name { font-family: 'Barlow Condensed', sans-serif; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 8px; opacity: 0.85; }
+.nkf-picker-row { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border: 1px solid #1e1e1e; border-radius: 4px; cursor: pointer; margin-bottom: 5px; transition: all 0.12s; background: #111; }
+.nkf-picker-row:hover { background: #171717; border-color: #2a2a2a; }
+.nkf-picker-row.checked { background: #161616; }
+.nkf-picker-checkbox { accent-color: #888; width: 14px; height: 14px; flex-shrink: 0; cursor: pointer; }
+.nkf-picker-name { flex: 1; font-size: 0.875rem; color: #ccc; }
+.nkf-picker-muscle { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; opacity: 0.8; }
+.nkf-builder-empty { color: #444; font-size: 0.875rem; padding: 20px 0; text-align: center; }
+.nkf-order-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; max-height: 480px; overflow-y: auto; }
+.nkf-order-item { display: flex; align-items: center; gap: 10px; background: #111; border: 1px solid #1e1e1e; border-radius: 4px; padding: 9px 12px; }
+.nkf-order-num { font-family: 'Barlow Condensed', sans-serif; font-size: 0.9rem; font-weight: 700; color: #555; width: 20px; text-align: center; flex-shrink: 0; }
+.nkf-order-info { flex: 1; min-width: 0; }
+.nkf-order-name { display: block; font-size: 0.85rem; color: #ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nkf-order-muscle { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; opacity: 0.8; }
+.nkf-order-btns { display: flex; gap: 4px; flex-shrink: 0; }
+.nkf-order-btns button { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 3px; color: #666; cursor: pointer; font-size: 0.75rem; padding: 3px 7px; transition: all 0.12s; }
+.nkf-order-btns button:hover:not(:disabled) { background: #252525; color: #aaa; }
+.nkf-order-btns button:disabled { opacity: 0.3; cursor: not-allowed; }
+.nkf-save-program-btn { width: 100%; font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; font-weight: 700; letter-spacing: 0.06em; padding: 13px; background: #1e1e1e; border: 1px solid #333; border-radius: 6px; color: #ccc; cursor: pointer; transition: all 0.15s; }
+.nkf-save-program-btn:hover:not(:disabled) { background: #2a2a2a; color: #fff; border-color: #555; }
+.nkf-save-program-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ─── Bruno Warning ──────────────────────────────────────────────────────────── */
+.nkf-bruno-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,0.7);
+  display: flex; align-items: center; justify-content: center;
+  animation: nkf-fadein 0.15s ease;
+}
+@keyframes nkf-fadein { from { opacity: 0 } to { opacity: 1 } }
+.nkf-bruno-popup {
+  display: flex; align-items: flex-end; gap: 0;
+  max-width: 480px; width: 90%;
+  animation: nkf-slidein 0.2s ease;
+}
+@keyframes nkf-slidein { from { transform: translateY(20px); opacity: 0 } to { transform: translateY(0); opacity: 1 } }
+.nkf-bruno-img {
+  width: 160px; flex-shrink: 0;
+  object-fit: contain; object-position: bottom;
+  filter: drop-shadow(0 0 20px rgba(0,0,0,0.8));
+}
+.nkf-bruno-bubble {
+  background: #1a1a1a; border: 1px solid #333; border-radius: 12px 12px 12px 0;
+  padding: 20px 22px; margin-bottom: 20px;
+  position: relative;
+}
+.nkf-bruno-msg {
+  font-size: 1rem; color: #ddd; line-height: 1.5; margin: 0 0 16px;
+  font-family: 'Barlow', sans-serif;
+}
+.nkf-bruno-msg em { color: #e84040; font-style: normal; font-weight: 600; }
+.nkf-bruno-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+.nkf-bruno-btn {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 0.9rem; font-weight: 700;
+  letter-spacing: 0.06em; padding: 9px 20px;
+  background: #e84040; border: none; border-radius: 4px;
+  color: #fff; cursor: pointer; transition: opacity 0.15s;
+}
+.nkf-bruno-btn:hover { opacity: 0.85; }
+.nkf-bruno-btn-secondary {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 0.9rem; font-weight: 700;
+  letter-spacing: 0.06em; padding: 9px 20px;
+  background: transparent; border: 1px solid #444; border-radius: 4px;
+  color: #888; cursor: pointer; transition: all 0.15s;
+}
+.nkf-bruno-btn-secondary:hover { border-color: #666; color: #bbb; }
+
+/* ─── Workout Tracker ────────────────────────────────────────────────────────── */
+.nkf-tracker-phase { }
+.nkf-tracker-header { margin-bottom: 24px; }
+
+/* Bodyweight */
+.nkf-bw-phase { display: flex; flex-direction: column; }
+.nkf-bw-card { max-width: 480px; margin: 0 auto; text-align: center; background: #141414; border: 1px solid #222; border-radius: 12px; padding: 40px 32px; }
+.nkf-bw-icon { font-size: 3rem; margin-bottom: 16px; }
+.nkf-bw-title { font-family: 'Barlow Condensed', sans-serif; font-size: 1.6rem; font-weight: 900; letter-spacing: 0.03em; margin: 0 0 8px; }
+.nkf-bw-title span { color: #888; }
+.nkf-bw-subtitle { font-size: 0.9rem; color: #666; margin: 0 0 24px; }
+.nkf-bw-input-row { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 20px; }
+.nkf-bw-input { background: #1a1a1a; border: 1px solid #333; border-radius: 6px; padding: 14px 18px; color: #fff; font-family: 'Barlow Condensed', sans-serif; font-size: 1.8rem; font-weight: 700; text-align: center; outline: none; width: 130px; }
+.nkf-bw-input:focus { border-color: #555; }
+.nkf-bw-unit { font-family: 'Barlow Condensed', sans-serif; font-size: 1.2rem; font-weight: 700; color: #555; }
+.nkf-bw-exercises { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 24px; }
+.nkf-bw-ex-chip { font-size: 0.72rem; padding: 3px 9px; border: 1px solid; border-radius: 3px; color: #777; background: #0d0d0d; }
+.nkf-start-btn { font-family: 'Barlow Condensed', sans-serif; font-size: 1.05rem; font-weight: 700; letter-spacing: 0.1em; padding: 14px 36px; background: #eee; border: none; border-radius: 6px; color: #000; cursor: pointer; transition: all 0.15s; }
+.nkf-start-btn:hover:not(:disabled) { background: #fff; }
+.nkf-start-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* Progress bar */
+.nkf-progress-bar { height: 3px; background: #1a1a1a; border-radius: 2px; margin-bottom: 6px; overflow: hidden; }
+.nkf-progress-fill { height: 100%; border-radius: 2px; transition: width 0.3s ease; }
+.nkf-progress-label { font-size: 0.75rem; color: #555; margin-bottom: 20px; }
+
+/* Training layout */
+.nkf-training-layout { display: grid; grid-template-columns: 1fr 240px; gap: 20px; }
+.nkf-training-main { }
+.nkf-training-ex-header { border-left: 4px solid; padding: 14px 16px; background: #141414; border-radius: 0 6px 6px 0; display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.nkf-training-ex-name { font-family: 'Barlow Condensed', sans-serif; font-size: 1.5rem; font-weight: 900; letter-spacing: 0.02em; }
+.nkf-training-ex-muscle { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.85; margin-top: 2px; }
+.nkf-training-last-max { font-size: 0.8rem; color: #666; text-align: right; }
+.nkf-training-last-max strong { color: #aaa; }
+
+.nkf-training-ex-toggles { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.nkf-toggle-btn {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 0.78rem; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 5px 12px; border: 1.5px solid #2a2a2a; border-radius: 3px;
+  background: transparent; color: #555; cursor: pointer; transition: all 0.15s;
+}
+.nkf-toggle-btn:hover { border-color: #444; color: #aaa; }
+.nkf-toggle-btn.active { background: #111; }
+.nkf-training-media {
+  background: #0d0d0d; border: 1px solid #1e1e1e; border-radius: 6px;
+  padding: 16px; margin-bottom: 16px;
+  animation: nkf-fadein 0.15s ease;
+}
+
+/* Set logger */
+.nkf-set-logger { background: #111; border: 1px solid #1e1e1e; border-radius: 8px; padding: 18px; margin-bottom: 16px; }
+.nkf-set-inputs { display: flex; gap: 12px; align-items: flex-end; }
+.nkf-set-input-group { display: flex; flex-direction: column; gap: 5px; }
+.nkf-set-input-group label { font-size: 0.7rem; color: #555; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
+.nkf-set-input { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 4px; padding: 10px 12px; color: #eee; font-family: 'Barlow Condensed', sans-serif; font-size: 1.4rem; font-weight: 700; text-align: center; outline: none; width: 90px; }
+.nkf-set-input:focus { border-color: #444; }
+.nkf-add-set-btn { font-family: 'Barlow Condensed', sans-serif; font-size: 0.9rem; font-weight: 700; letter-spacing: 0.06em; padding: 10px 18px; border: none; border-radius: 4px; color: #000; cursor: pointer; transition: opacity 0.15s; white-space: nowrap; }
+.nkf-add-set-btn:hover { opacity: 0.85; }
+.nkf-current-sets { margin-top: 16px; }
+.nkf-sets-label { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.15em; color: #555; text-transform: uppercase; margin-bottom: 8px; }
+.nkf-sets-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.nkf-set-chip { display: flex; align-items: center; gap: 6px; border: 1px solid; border-radius: 4px; padding: 5px 10px; background: #0d0d0d; }
+.nkf-set-chip-num { font-size: 0.7rem; color: #555; }
+.nkf-set-chip-val { font-family: 'Barlow Condensed', sans-serif; font-size: 0.95rem; font-weight: 700; color: #ddd; }
+.nkf-set-chip-remove { background: none; border: none; color: #444; cursor: pointer; font-size: 0.65rem; padding: 0; line-height: 1; }
+.nkf-set-chip-remove:hover { color: #e84040; }
+
+/* Nav buttons */
+.nkf-nav-btns { display: flex; gap: 10px; }
+.nkf-prev-btn { font-family: 'Barlow Condensed', sans-serif; font-size: 0.9rem; font-weight: 700; letter-spacing: 0.06em; padding: 12px 20px; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 6px; color: #888; cursor: pointer; transition: all 0.15s; }
+.nkf-prev-btn:hover { border-color: #444; color: #ccc; }
+.nkf-next-btn { flex: 1; font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; font-weight: 700; letter-spacing: 0.08em; padding: 13px; border: none; border-radius: 6px; color: #000; cursor: pointer; transition: opacity 0.15s; }
+.nkf-next-btn:hover { opacity: 0.85; }
+
+/* History panel */
+.nkf-history-panel { background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 8px; padding: 16px; height: fit-content; position: sticky; top: 80px; }
+.nkf-history-title { font-family: 'Barlow Condensed', sans-serif; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.2em; color: #555; text-transform: uppercase; margin-bottom: 10px; }
+.nkf-history-empty { font-size: 0.78rem; color: #444; }
+.nkf-history-set { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid #151515; }
+.nkf-history-set-num { font-size: 0.75rem; color: #555; }
+.nkf-history-set-val { font-family: 'Barlow Condensed', sans-serif; font-size: 0.95rem; font-weight: 700; color: #aaa; }
+.nkf-history-max { font-size: 0.75rem; margin-top: 6px; font-weight: 600; }
+.nkf-queue-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border: 1px solid transparent; border-radius: 4px; margin-bottom: 4px; transition: all 0.12s; }
+.nkf-queue-item.current { background: #141414; border-color: #2a2a2a; }
+.nkf-queue-item.done { opacity: 0.35; }
+.nkf-queue-num { font-size: 0.7rem; color: #555; width: 16px; text-align: center; flex-shrink: 0; }
+.nkf-queue-name { flex: 1; font-size: 0.78rem; color: #999; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nkf-queue-check { font-size: 0.7rem; color: #40c870; flex-shrink: 0; }
+.nkf-queue-arrow { font-size: 0.7rem; flex-shrink: 0; }
+
+/* Done screen */
+.nkf-done-phase { display: flex; justify-content: center; }
+.nkf-done-card { max-width: 520px; width: 100%; background: #141414; border: 1px solid #222; border-radius: 12px; padding: 40px 32px; text-align: center; }
+.nkf-done-icon { font-size: 3.5rem; margin-bottom: 16px; }
+.nkf-done-title { font-family: 'Barlow Condensed', sans-serif; font-size: 2rem; font-weight: 900; margin: 0 0 4px; }
+.nkf-done-subtitle { font-size: 0.9rem; color: #666; margin: 0 0 28px; }
+.nkf-done-stats { display: flex; gap: 0; margin-bottom: 28px; border: 1px solid #222; border-radius: 8px; overflow: hidden; }
+.nkf-done-stat { flex: 1; padding: 16px 8px; border-right: 1px solid #222; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.nkf-done-stat:last-child { border-right: none; }
+.nkf-done-stat-num { font-family: 'Barlow Condensed', sans-serif; font-size: 1.8rem; font-weight: 900; color: #eee; }
+.nkf-done-stat span:last-child { font-size: 0.72rem; color: #555; text-transform: uppercase; letter-spacing: 0.05em; }
+.nkf-done-summary { text-align: left; margin-bottom: 28px; display: flex; flex-direction: column; gap: 10px; }
+.nkf-done-ex { }
+.nkf-done-ex-name { font-family: 'Barlow Condensed', sans-serif; font-size: 0.9rem; font-weight: 700; color: #888; letter-spacing: 0.04em; display: block; margin-bottom: 5px; }
+.nkf-done-ex-sets { display: flex; flex-wrap: wrap; gap: 5px; }
+.nkf-done-set-chip { font-family: 'Barlow Condensed', sans-serif; font-size: 0.85rem; font-weight: 600; background: #111; border: 1px solid #222; border-radius: 3px; padding: 3px 8px; color: #aaa; }
+
+/* ─── Leaderboard ────────────────────────────────────────────────────────────── */
+.nkf-ex-select { width: 100%; max-width: 380px; background: #141414; border: 2px solid; border-radius: 6px; padding: 10px 14px; color: #eee; font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; font-weight: 700; outline: none; cursor: pointer; margin-bottom: 28px; }
+.nkf-ex-select optgroup { background: #141414; color: #888; font-size: 0.8rem; }
+.nkf-ex-select option { background: #141414; }
+.nkf-board { display: flex; flex-direction: column; gap: 6px; }
+.nkf-board-row { display: flex; align-items: center; gap: 14px; background: #111; border: 1px solid #1e1e1e; border-radius: 6px; padding: 13px 16px; transition: border-color 0.15s; }
+.nkf-board-row.podium { background: #131313; }
+.nkf-board-rank { font-family: 'Barlow Condensed', sans-serif; font-size: 1.3rem; width: 32px; text-align: center; flex-shrink: 0; }
+.nkf-board-name { flex: 1; font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; font-weight: 700; letter-spacing: 0.03em; color: #ddd; }
+.nkf-board-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.nkf-board-weight { font-family: 'Barlow Condensed', sans-serif; font-size: 1.3rem; font-weight: 900; color: #eee; }
+.nkf-board-reps { font-size: 0.8rem; color: #666; }
+.nkf-board-date { font-size: 0.75rem; color: #444; }
+
+/* ─── Responsive ─────────────────────────────────────────────────────────────── */
+@media (max-width: 720px) {
+  .nkf-builder-layout { grid-template-columns: 1fr; }
+  .nkf-training-layout { grid-template-columns: 1fr; }
+  .nkf-history-panel { position: static; order: -1; }
+  .nkf-video-short { width: 100%; height: 440px; }
+  .nkf-board-right { gap: 8px; }
+  .nkf-board-date { display: none; }
+}
