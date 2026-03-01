@@ -354,3 +354,458 @@
   .nkf-board-right { gap: 8px; }
   .nkf-board-date { display: none; }
 }
+
+/* ─── Pool Bruno Congrats ─────────────────────────────────────────────────────── */
+.nkf-bruno-congrats-row {
+  display: flex; align-items: flex-end; gap: 0; margin-bottom: 20px;
+}
+.nkf-pool-bruno {
+  width: 140px; flex-shrink: 0;
+  object-fit: contain; object-position: bottom;
+  filter: drop-shadow(0 0 16px rgba(0,0,0,0.8));
+}
+.nkf-bruno-congrats-bubble {
+  background: #1a1a1a; border: 1px solid #333; border-radius: 12px 12px 12px 0;
+  padding: 16px 18px; margin-bottom: 16px; text-align: left;
+}
+.nkf-bruno-congrats-title {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 1.2rem; font-weight: 900;
+  letter-spacing: 0.06em; color: #fff; margin: 0 0 6px;
+}
+.nkf-bruno-congrats-quip {
+  font-size: 0.875rem; color: #aaa; line-height: 1.5; margin: 0;
+}
+
+/* ─── Programs Tabs ──────────────────────────────────────────────────────────── */
+.nkf-prog-tabs {
+  display: flex; gap: 0; margin-bottom: 24px;
+  border-bottom: 1px solid #1e1e1e;
+}
+.nkf-prog-tab {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 0.95rem; font-weight: 700;
+  letter-spacing: 0.06em; padding: 10px 22px;
+  background: transparent; border: none; border-bottom: 2px solid transparent;
+  color: #555; cursor: pointer; transition: all 0.15s; margin-bottom: -1px;
+}
+.nkf-prog-tab:hover { color: #aaa; }
+.nkf-prog-tab.active { color: #fff; border-bottom-color: #fff; }
+
+/* ─── Exercise Tabs (Library) ────────────────────────────────────────────────── */
+.nkf-ex-tabs {
+  display: flex; gap: 0; margin-bottom: 16px; margin-top: 4px;
+  border-bottom: 1px solid #1e1e1e;
+}
+.nkf-ex-tab {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 0.82rem; font-weight: 700;
+  letter-spacing: 0.05em; padding: 8px 14px;
+  background: transparent; border: none; border-bottom: 2px solid transparent;
+  color: #555; cursor: pointer; transition: all 0.15s; margin-bottom: -1px;
+  white-space: nowrap;
+}
+.nkf-ex-tab:hover { color: #aaa; }
+.nkf-ex-tab.active { }
+
+/* ─── Exercise History (inline in library card) ──────────────────────────────── */
+.nkf-ex-hist-empty { font-size: 0.8rem; color: #555; padding: 12px 0; }
+.nkf-ex-hist { display: flex; flex-direction: column; gap: 14px; }
+.nkf-ex-hist-session { }
+.nkf-ex-hist-session-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.nkf-ex-hist-date { font-family: 'Barlow Condensed', sans-serif; font-size: 0.85rem; font-weight: 700; color: #888; letter-spacing: 0.04em; }
+.nkf-ex-hist-bw { font-size: 0.72rem; color: #555; background: #111; border: 1px solid #222; border-radius: 3px; padding: 2px 7px; }
+.nkf-ex-hist-best { font-size: 0.72rem; font-weight: 700; margin-left: auto; }
+
+/* ─── Shared Results Table ───────────────────────────────────────────────────── */
+.nkf-ex-hist-table {
+  width: 100%; border-collapse: collapse; font-size: 0.82rem;
+}
+.nkf-ex-hist-table th {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 0.68rem; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase; color: #555;
+  padding: 5px 10px; text-align: left; border-bottom: 1px solid #1a1a1a;
+}
+.nkf-ex-hist-table td {
+  padding: 6px 10px; color: #aaa; border-bottom: 1px solid #111;
+  font-family: 'Barlow Condensed', sans-serif; font-size: 0.9rem;
+}
+.nkf-ex-hist-table tr:last-child td { border-bottom: none; }
+.nkf-ex-hist-pr-row td { color: #fff; font-weight: 700; }
+.nkf-ex-hist-pr-row td:first-child::after { content: ' ★'; font-size: 0.7rem; }
+
+/* ─── Workout History View ───────────────────────────────────────────────────── */
+.nkf-history-view { display: flex; flex-direction: column; gap: 10px; }
+.nkf-hist-session-card {
+  background: #111; border: 1px solid #1e1e1e; border-radius: 8px; overflow: hidden;
+  transition: border-color 0.15s;
+}
+.nkf-hist-session-card:hover { border-color: #2a2a2a; }
+.nkf-hist-session-card.open { border-color: #2a2a2a; }
+.nkf-hist-session-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; cursor: pointer; gap: 12px;
+}
+.nkf-hist-session-info { display: flex; flex-direction: column; gap: 3px; }
+.nkf-hist-session-name { font-family: 'Barlow Condensed', sans-serif; font-size: 1.05rem; font-weight: 700; letter-spacing: 0.03em; color: #ddd; }
+.nkf-hist-session-date { font-size: 0.75rem; color: #555; }
+.nkf-hist-session-meta { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.nkf-hist-meta-chip { font-size: 0.75rem; color: #777; background: #1a1a1a; border: 1px solid #252525; border-radius: 3px; padding: 3px 8px; }
+.nkf-hist-chevron { font-size: 0.6rem; color: #555; transition: transform 0.2s ease; display: inline-block; }
+.nkf-hist-session-body { padding: 0 16px 16px; border-top: 1px solid #1a1a1a; }
+.nkf-hist-ex-block { margin-top: 16px; }
+.nkf-hist-ex-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; gap: 10px; flex-wrap: wrap; }
+.nkf-hist-ex-name { font-family: 'Barlow Condensed', sans-serif; font-size: 0.9rem; font-weight: 700; letter-spacing: 0.04em; color: #999; }
+.nkf-hist-ex-stats { display: flex; gap: 12px; font-size: 0.75rem; color: #555; }
+
+/* ─── Pool Bruno Done Screen ─────────────────────────────────────────────────── */
+.nkf-pool-bruno-section {
+  display: flex; align-items: center; gap: 20px;
+  background: linear-gradient(135deg, #0d1f2d 0%, #0a1a1a 100%);
+  border: 1px solid #1a3a3a; border-radius: 12px;
+  padding: 20px; margin-bottom: 24px; text-align: left;
+}
+.nkf-pool-bruno {
+  width: 120px; flex-shrink: 0;
+  object-fit: contain;
+  border-radius: 8px;
+}
+.nkf-pool-bruno-text { flex: 1; }
+.nkf-bruno-congrats-title {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 1.3rem; font-weight: 900;
+  letter-spacing: 0.08em; color: #fff; margin: 0 0 4px;
+}
+.nkf-pool-program-name {
+  font-size: 0.8rem; color: #888; margin: 0 0 10px; letter-spacing: 0.04em;
+}
+.nkf-bruno-congrats-quip {
+  font-size: 0.85rem; color: #aaa; line-height: 1.55; margin: 0;
+  font-style: italic;
+}
+
+/* ─── Leaderboard Overhaul ───────────────────────────────────────────────────── */
+.nkf-lb-recent-label {
+  font-size: 0.75rem; color: #555; margin-bottom: 14px; letter-spacing: 0.04em;
+}
+.nkf-recent-row { flex-wrap: wrap; gap: 8px; }
+.nkf-recent-ex-info { display: flex; flex-direction: column; gap: 2px; min-width: 140px; flex: 1; }
+.nkf-recent-ex-name { font-family: 'Barlow Condensed', sans-serif; font-size: 0.95rem; font-weight: 700; color: #ddd; }
+.nkf-recent-ex-muscle { font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+.nkf-lb-category { display: flex; flex-direction: column; gap: 28px; }
+.nkf-lb-ex-block { }
+.nkf-lb-ex-name {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; font-weight: 700;
+  letter-spacing: 0.04em; color: #ccc;
+  border-left: 3px solid; padding-left: 10px; margin-bottom: 8px;
+  display: flex; align-items: center; gap: 10px;
+}
+.nkf-lb-ex-muscle { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; opacity: 0.8; }
+
+/* ─── PR Comments (Leaderboard) ──────────────────────────────────────────────── */
+.nkf-lb-comments-btn {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 0.8rem; font-weight: 700;
+  letter-spacing: 0.06em; padding: 7px 14px; margin-top: 8px;
+  background: transparent; border: 1px solid #2a2a2a; border-radius: 4px;
+  color: #555; cursor: pointer; transition: all 0.15s; display: block;
+}
+.nkf-lb-comments-btn:hover { border-color: #444; color: #aaa; }
+.nkf-lb-comments-btn.open { background: #111; }
+.nkf-pr-comments {
+  margin-top: 12px; padding: 14px; background: #0d0d0d;
+  border: 1px solid #1e1e1e; border-radius: 6px;
+  animation: nkf-fadein 0.15s ease;
+}
+.nkf-pr-comments-list { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+.nkf-pr-comment-item {
+  background: #111; border: 1px solid #1a1a1a; border-radius: 4px; padding: 8px 12px;
+}
+
+/* ─── Training Live Chat ─────────────────────────────────────────────────────── */
+.nkf-training-chat { }
+.nkf-training-chat-label {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+  font-family: 'Barlow Condensed', sans-serif; font-size: 0.8rem; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase; color: #666;
+}
+.nkf-training-chat-sub {
+  font-family: 'Barlow', sans-serif; font-size: 0.72rem; font-weight: 400;
+  letter-spacing: 0; text-transform: none; color: #444; margin-left: 2px;
+}
+
+/* ─── Program Notes & Share ──────────────────────────────────────────────────── */
+.nkf-program-card-actions { display: flex; gap: 6px; align-items: center; }
+.nkf-program-notes-btn {
+  background: transparent; border: 1px solid #2a2a2a; border-radius: 4px;
+  color: #555; cursor: pointer; font-size: 0.85rem; padding: 6px 9px;
+  transition: all 0.15s;
+}
+.nkf-program-notes-btn:hover { border-color: #555; color: #ccc; }
+.nkf-program-share-btn {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 0.8rem; font-weight: 700;
+  letter-spacing: 0.05em; padding: 6px 12px;
+  background: transparent; border: 1px solid #2a2a2a; border-radius: 4px;
+  color: #555; cursor: pointer; transition: all 0.15s;
+}
+.nkf-program-share-btn:hover { border-color: #555; color: #ccc; }
+.nkf-program-share-btn.shared { border-color: #40c870; color: #40c870; background: rgba(64,200,112,0.06); }
+.nkf-program-notes-display {
+  display: flex; align-items: flex-start; gap: 7px; padding: 8px 10px;
+  background: #0f0f0f; border: 1px solid #1e1e1e; border-radius: 4px;
+  margin-bottom: 10px; cursor: pointer; transition: border-color 0.15s;
+}
+.nkf-program-notes-display:hover { border-color: #333; }
+.nkf-program-notes-label { font-size: 0.8rem; flex-shrink: 0; }
+.nkf-program-notes-text { font-size: 0.8rem; color: #888; line-height: 1.45; }
+.nkf-program-notes-edit { margin-bottom: 10px; }
+.nkf-program-notes-input {
+  width: 100%; background: #141414; border: 1px solid #333; border-radius: 4px;
+  padding: 10px 12px; color: #eee; font-family: 'Barlow', sans-serif;
+  font-size: 0.85rem; outline: none; resize: vertical; box-sizing: border-box;
+}
+.nkf-program-notes-input:focus { border-color: #555; }
+.nkf-program-notes-btns { display: flex; gap: 6px; margin-top: 6px; }
+.nkf-notes-save-btn {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 0.82rem; font-weight: 700;
+  letter-spacing: 0.06em; padding: 6px 14px; background: #1e1e1e;
+  border: 1px solid #444; border-radius: 4px; color: #ccc; cursor: pointer;
+}
+.nkf-notes-save-btn:hover { background: #2a2a2a; color: #fff; }
+.nkf-notes-cancel-btn {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 0.82rem; font-weight: 700;
+  letter-spacing: 0.06em; padding: 6px 14px; background: transparent;
+  border: 1px solid #2a2a2a; border-radius: 4px; color: #555; cursor: pointer;
+}
+.nkf-notes-cancel-btn:hover { color: #aaa; }
+
+/* ─── Post Workout Note ──────────────────────────────────────────────────────── */
+.nkf-postnote {
+  background: #0f0f0f; border: 1px solid #1e1e1e; border-radius: 8px;
+  padding: 16px; margin-bottom: 20px; text-align: left;
+}
+.nkf-postnote-label {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 0.75rem; font-weight: 700;
+  letter-spacing: 0.15em; text-transform: uppercase; color: #666; margin-bottom: 10px;
+}
+.nkf-postnote-label span { font-weight: 400; text-transform: none; letter-spacing: 0; color: #444; }
+.nkf-postnote-input {
+  width: 100%; background: #141414; border: 1px solid #2a2a2a; border-radius: 4px;
+  padding: 10px 12px; color: #eee; font-family: 'Barlow', sans-serif;
+  font-size: 0.875rem; outline: none; resize: vertical; box-sizing: border-box;
+}
+.nkf-postnote-input:focus { border-color: #444; }
+.nkf-postnote-btn {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 0.85rem; font-weight: 700;
+  letter-spacing: 0.06em; padding: 8px 18px; margin-top: 8px;
+  background: #1e1e1e; border: 1px solid #333; border-radius: 4px;
+  color: #ccc; cursor: pointer; transition: all 0.15s;
+}
+.nkf-postnote-btn:hover:not(:disabled) { background: #2a2a2a; color: #fff; }
+.nkf-postnote-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.nkf-postnote-saved { font-size: 0.82rem; color: #40c870; padding: 10px 0; margin-bottom: 16px; }
+
+/* ─── Community Programs ─────────────────────────────────────────────────────── */
+.nkf-community-programs { display: flex; flex-direction: column; gap: 8px; }
+.nkf-community-card {
+  background: #111; border: 1px solid #1e1e1e; border-radius: 8px; overflow: hidden;
+  transition: border-color 0.15s;
+}
+.nkf-community-card:hover { border-color: #2a2a2a; }
+.nkf-community-card.open { border-color: #2a2a2a; }
+.nkf-community-card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; cursor: pointer; gap: 12px;
+}
+.nkf-community-card-info { display: flex; flex-direction: column; gap: 3px; }
+.nkf-community-card-name { font-family: 'Barlow Condensed', sans-serif; font-size: 1.05rem; font-weight: 700; color: #ddd; }
+.nkf-community-card-author { font-size: 0.72rem; color: #555; }
+.nkf-community-card-meta { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.nkf-community-ex-count { font-size: 0.75rem; color: #666; }
+.nkf-community-card-body { padding: 0 16px 16px; border-top: 1px solid #1a1a1a; }
+.nkf-community-exercises { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; margin-bottom: 12px; }
+.nkf-community-notes { background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 4px; padding: 10px 12px; margin-bottom: 12px; }
+.nkf-community-notes-label { font-family: 'Barlow Condensed', sans-serif; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: #555; display: block; margin-bottom: 6px; }
+.nkf-community-notes-text { font-size: 0.85rem; color: #999; line-height: 1.5; margin: 0; }
+.nkf-copy-program-btn {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 0.88rem; font-weight: 700;
+  letter-spacing: 0.06em; padding: 9px 18px;
+  background: #1e1e1e; border: 1px solid #333; border-radius: 4px;
+  color: #ccc; cursor: pointer; transition: all 0.15s;
+}
+.nkf-copy-program-btn:hover:not(:disabled) { background: #2a2a2a; color: #fff; border-color: #555; }
+.nkf-copy-program-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.nkf-community-own-badge { font-size: 0.75rem; color: #40c870; padding: 4px 0; }
+
+/* ─── DeathStare Bruno (delete confirm) ──────────────────────────────────────── */
+.nkf-deathstare-img {
+  width: 140px; flex-shrink: 0;
+  filter: drop-shadow(0 0 24px rgba(232,64,64,0.3));
+}
+
+/* ─── Legs Day Bruno Butt ────────────────────────────────────────────────────── */
+.nkf-legs-bruno-wrap {
+  margin-left: auto; display: flex; align-items: center; gap: 10px;
+}
+.nkf-legs-bruno {
+  width: 72px; border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+  flex-shrink: 0;
+}
+.nkf-legs-bruno-caption {
+  font-size: 0.72rem; color: #555; font-style: italic; max-width: 110px; line-height: 1.4;
+}
+
+/* ─── Model Bruno Leaderboard Hero ───────────────────────────────────────────── */
+.nkf-lb-hero {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 16px; margin-bottom: 24px;
+}
+.nkf-lb-hero-text { flex: 1; }
+.nkf-lb-hero .nkf-section-title { margin-bottom: 4px; }
+.nkf-model-bruno {
+  width: 90px; flex-shrink: 0;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.7);
+  object-fit: cover; object-position: top;
+}
+
+/* ─── Sick Bruno toast (set deleted) ────────────────────────────────────────── */
+.nkf-sick-bruno-toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 10px;
+  background: #1a0a0a; border: 1px solid #3a1a1a; border-radius: 10px;
+  padding: 10px 16px; z-index: 999;
+  animation: nkf-toast-in 0.25s ease, nkf-toast-out 0.3s ease 2.5s forwards;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.8);
+  max-width: 90vw;
+}
+.nkf-sick-bruno-img {
+  width: 44px; flex-shrink: 0;
+  filter: drop-shadow(0 0 8px rgba(232,64,64,0.4));
+}
+.nkf-sick-bruno-toast span {
+  font-family: 'Barlow', sans-serif; font-size: 0.88rem; color: #cc8888;
+}
+
+/* ─── Funny Bruno toast (PR!) ────────────────────────────────────────────────── */
+.nkf-funny-bruno-toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 12px;
+  background: #0a1a0a; border: 1px solid #1a4a1a; border-radius: 10px;
+  padding: 12px 18px; z-index: 999;
+  animation: nkf-toast-in 0.25s ease, nkf-toast-out 0.3s ease 3.2s forwards;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.8);
+  max-width: 90vw;
+}
+.nkf-funny-bruno-img {
+  width: 50px; flex-shrink: 0;
+  filter: drop-shadow(0 0 10px rgba(64,200,112,0.4));
+}
+.nkf-funny-bruno-toast span {
+  font-family: 'Barlow', sans-serif; font-size: 0.9rem; color: #88cc88; font-weight: 600;
+}
+
+@keyframes nkf-toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+@keyframes nkf-toast-out {
+  from { opacity: 1; }
+  to   { opacity: 0; transform: translateX(-50%) translateY(8px); }
+}
+
+/* ─── Program History ────────────────────────────────────────────────────────── */
+.nkf-prog-history { }
+.nkf-prog-history-header { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 24px; }
+
+.nkf-prog-hist-stats {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 1px; background: #1a1a1a; border: 1px solid #1a1a1a;
+  border-radius: 8px; overflow: hidden; margin-bottom: 28px;
+}
+.nkf-prog-hist-stat {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 4px; padding: 18px 8px; background: #111;
+}
+.nkf-prog-hist-stat-num {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 1.8rem;
+  font-weight: 900; color: #eee;
+}
+.nkf-prog-hist-stat-label {
+  font-size: 0.7rem; color: #555; text-transform: uppercase; letter-spacing: 0.08em;
+}
+
+.nkf-prog-hist-section-label {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 0.75rem; font-weight: 700;
+  letter-spacing: 0.18em; text-transform: uppercase; color: #555;
+  margin-bottom: 12px;
+}
+
+/* Exercise progress rows */
+.nkf-prog-hist-progress { display: flex; flex-direction: column; gap: 6px; }
+.nkf-prog-hist-ex-row {
+  background: #111; border: 1px solid #1e1e1e; border-radius: 6px; overflow: hidden;
+  transition: border-color 0.15s;
+}
+.nkf-prog-hist-ex-row:hover { border-color: #2a2a2a; }
+.nkf-prog-hist-ex-row.open { border-color: #2a2a2a; }
+.nkf-prog-hist-ex-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px; cursor: pointer; gap: 10px;
+}
+.nkf-prog-hist-ex-info { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+.nkf-prog-hist-ex-name { font-family: 'Barlow Condensed', sans-serif; font-size: 0.95rem; font-weight: 700; color: #ccc; }
+.nkf-prog-hist-ex-best { font-size: 0.78rem; font-weight: 600; }
+.nkf-prog-hist-ex-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.nkf-prog-hist-improvement {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 0.82rem; font-weight: 700;
+  color: #40c870; background: rgba(64,200,112,0.08); border: 1px solid rgba(64,200,112,0.2);
+  border-radius: 3px; padding: 2px 7px;
+}
+.nkf-prog-hist-ex-body { padding: 0 14px 12px; }
+
+/* Session note in history */
+.nkf-hist-session-note {
+  font-size: 0.72rem; color: #666; font-style: italic; margin-top: 2px; display: block;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 320px;
+}
+
+/* History button on program card */
+.nkf-card-right-btns { display: flex; gap: 6px; align-items: center; }
+.nkf-hist-btn {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 0.82rem; font-weight: 700;
+  letter-spacing: 0.05em; padding: 8px 14px;
+  background: transparent; border: 1px solid #2a2a2a; border-radius: 4px;
+  color: #666; cursor: pointer; transition: all 0.15s;
+}
+.nkf-hist-btn:hover { border-color: #444; color: #bbb; }
+
+/* ─── History Action Buttons ─────────────────────────────────────────────────── */
+.nkf-hist-action-btn {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 0.75rem; font-weight: 700;
+  letter-spacing: 0.05em; padding: 4px 9px;
+  background: transparent; border: 1px solid #252525; border-radius: 3px;
+  cursor: pointer; transition: all 0.15s; flex-shrink: 0;
+}
+.nkf-hist-action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.nkf-hist-share-btn { color: #888; }
+.nkf-hist-share-btn:hover:not(:disabled) { border-color: #40c870; color: #40c870; }
+.nkf-hist-delete-btn { color: #555; }
+.nkf-hist-delete-btn:hover:not(:disabled) { border-color: #e84040; color: #e84040; }
+
+/* ─── Share Toast ─────────────────────────────────────────────────────────────── */
+.nkf-share-toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: #0a1a0a; border: 1px solid #1a4a1a; border-radius: 8px;
+  padding: 11px 20px; z-index: 999; color: #88cc88;
+  font-family: 'Barlow Condensed', sans-serif; font-size: 0.9rem; font-weight: 700;
+  letter-spacing: 0.05em; white-space: nowrap;
+  animation: nkf-toast-in 0.2s ease, nkf-toast-out 0.3s ease 2.2s forwards;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.8);
+}
+
+/* ─── Session notes in expanded body ─────────────────────────────────────────── */
+.nkf-hist-session-notes {
+  font-size: 0.82rem; color: #888; line-height: 1.5;
+  padding: 10px 12px; background: #0d0d0d; border: 1px solid #1a1a1a;
+  border-radius: 4px; margin-bottom: 12px; margin-top: 12px;
+}

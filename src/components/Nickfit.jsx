@@ -363,12 +363,595 @@ function ProgramBuilder({ user, onSave, onCancel }) {
   )
 }
 
+// ─── Program History ─────────────────────────────────────────────────────────
+
+function ProgramHistory({ program, user, onBack }) {
+  const [sessions, setSessions] = useState([])
+  const [sessionSets, setSessionSets] = useState({})
+  const [expandedSession, setExpandedSession] = useState(null)
+  const [expandedProgress, setExpandedProgress] = useState(null) // exercise name
+  const [loading, setLoading] = useState(true)
+  const [progressData, setProgressData] = useState({}) // { exName: [{date, best}] }
+
+  useEffect(() => {
+    const load = async () => {
+      const { data: sess } = await supabase
+        .from('workout_sessions')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('program_id', program.id)
+        .not('completed_at', 'is', null)
+        .order('started_at', { ascending: false })
+      if (!sess?.length) { setLoading(false); return }
+      setSessions(sess)
+
+      // Load all sets for this program's sessions at once
+      const ids = sess.map(s => s.id)
+      const { data: sets } = await supabase
+        .from('session_sets')
+        .select('*')
+        .in('session_id', ids)
+        .order('set_number')
+
+      // Group by session
+      const bySession = {}
+      sets?.forEach(row => {
+        if (!bySession[row.session_id]) bySession[row.session_id] = {}
+        if (!bySession[row.session_id][row.exercise_name]) bySession[row.session_id][row.exercise_name] = []
+        bySession[row.session_id][row.exercise_name].push(row)
+      })
+      setSessionSets(bySession)
+
+      // Build progress over time per exercise (newest first → reverse for chart)
+      const progress = {}
+      program.exercises.forEach(exName => {
+        const points = sess
+          .map(s => {
+            const exSets = bySession[s.id]?.[exName] || []
+            if (!exSets.length) return null
+            const best = Math.max(...exSets.map(r => r.weight || 0))
+            const vol = exSets.reduce((a, r) => a + (r.weight || 0) * (r.reps || 0), 0)
+            return { date: s.started_at, best, vol, sets: exSets.length }
+          })
+          .filter(Boolean)
+          .reverse() // oldest first for progress view
+        if (points.length) progress[exName] = points
+      })
+      setProgressData(progress)
+      setLoading(false)
+    }
+    load()
+  }, [program.id, user.id])
+
+  const loadSets = (sessionId) => {
+    setExpandedSession(s => s === sessionId ? null : sessionId)
+  }
+
+  const deleteSession = async (sessionId) => {
+    await supabase.from('session_sets').delete().eq('session_id', sessionId)
+    await supabase.from('workout_sessions').delete().eq('id', sessionId)
+    setSessions(prev => prev.filter(s => s.id !== sessionId))
+    setSessionSets(prev => { const n = { ...prev }; delete n[sessionId]; return n })
+    if (expandedSession === sessionId) setExpandedSession(null)
+  }
+
+  const shareSession = async (session) => {
+    const sets = sessionSets[session.id] || {}
+    const date = new Date(session.started_at).toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
+    const duration = session.completed_at
+      ? Math.round((new Date(session.completed_at) - new Date(session.started_at)) / 60000) : null
+    let text = `💪 ${session.program_name || 'Workout'} — ${date}\n`
+    if (session.bodyweight) text += `⚖️ Bodyweight: ${session.bodyweight}kg\n`
+    if (duration) text += `⏱ Duration: ${duration}min\n`
+    if (session.notes) text += `📝 ${session.notes}\n`
+    text += '\n'
+    Object.entries(sets).forEach(([exName, exSets]) => {
+      const best = Math.max(...exSets.map(s => s.weight || 0))
+      text += `${exName} (best: ${best}kg)\n`
+      exSets.forEach(s => { text += `  Set ${s.set_number}: ${s.weight > 0 ? s.weight + 'kg' : '—'} × ${s.reps || '—'}\n` })
+    })
+    text += '\n— via Nicktopia 🏋️'
+    try { await navigator.clipboard.writeText(text); alert('✓ Results copied to clipboard!') }
+    catch { prompt('Copy your results:', text) }
+  }
+
+  // Stats
+  const totalSessions = sessions.length
+  const totalVolume = Object.values(sessionSets).reduce((total, exMap) => {
+    return total + Object.values(exMap).reduce((t, sets) => {
+      return t + sets.reduce((s, r) => s + (r.weight || 0) * (r.reps || 0), 0)
+    }, 0)
+  }, 0)
+  const avgDuration = sessions.length ? Math.round(
+    sessions.filter(s => s.completed_at).reduce((sum, s) =>
+      sum + (new Date(s.completed_at) - new Date(s.started_at)) / 60000, 0
+    ) / sessions.filter(s => s.completed_at).length
+  ) : 0
+
+  if (loading) return (
+    <div className="nkf-prog-history">
+      <button className="nkf-back-btn" onClick={onBack}>← Back</button>
+      <div className="nkf-loading-msg">Loading program history...</div>
+    </div>
+  )
+
+  return (
+    <div className="nkf-prog-history">
+      <div className="nkf-prog-history-header">
+        <button className="nkf-back-btn" onClick={onBack}>← Back</button>
+        <div>
+          <h2 className="nkf-section-title">{program.name}</h2>
+          <p className="nkf-section-sub">{program.exercises.length} exercises · program history</p>
+        </div>
+      </div>
+
+      {/* Summary stats */}
+      <div className="nkf-prog-hist-stats">
+        <div className="nkf-prog-hist-stat">
+          <span className="nkf-prog-hist-stat-num">{totalSessions}</span>
+          <span className="nkf-prog-hist-stat-label">Sessions</span>
+        </div>
+        <div className="nkf-prog-hist-stat">
+          <span className="nkf-prog-hist-stat-num">{(totalVolume / 1000).toFixed(1)}t</span>
+          <span className="nkf-prog-hist-stat-label">Total Volume</span>
+        </div>
+        <div className="nkf-prog-hist-stat">
+          <span className="nkf-prog-hist-stat-num">{avgDuration}m</span>
+          <span className="nkf-prog-hist-stat-label">Avg Duration</span>
+        </div>
+      </div>
+
+      {sessions.length === 0 ? (
+        <div className="nkf-empty-state">
+          <div className="nkf-empty-icon">📅</div>
+          <p>No completed sessions for this program yet.</p>
+        </div>
+      ) : (
+        <>
+          {/* Progress per exercise */}
+          <div className="nkf-prog-hist-section-label">📈 Exercise Progress</div>
+          <div className="nkf-prog-hist-progress">
+            {program.exercises.map(exName => {
+              const points = progressData[exName]
+              if (!points?.length) return null
+              const info = getExercise(exName)
+              const isOpen = expandedProgress === exName
+              const latest = points[points.length - 1]
+              const first = points[0]
+              const improvement = latest.best - first.best
+              return (
+                <div key={exName} className={`nkf-prog-hist-ex-row${isOpen ? ' open' : ''}`}>
+                  <div className="nkf-prog-hist-ex-header" onClick={() => setExpandedProgress(isOpen ? null : exName)}>
+                    <div className="nkf-prog-hist-ex-info">
+                      <span className="nkf-prog-hist-ex-name">{exName}</span>
+                      <span className="nkf-prog-hist-ex-best" style={{ color: info?.dayColor }}>Best: {latest.best}kg</span>
+                    </div>
+                    <div className="nkf-prog-hist-ex-right">
+                      {improvement > 0 && (
+                        <span className="nkf-prog-hist-improvement">+{improvement}kg</span>
+                      )}
+                      <span className="nkf-hist-chevron" style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>▼</span>
+                    </div>
+                  </div>
+                  {isOpen && (
+                    <div className="nkf-prog-hist-ex-body">
+                      <table className="nkf-ex-hist-table">
+                        <thead><tr><th>Date</th><th>Best</th><th>Sets</th><th>Volume</th></tr></thead>
+                        <tbody>
+                          {[...points].reverse().map((pt, i) => {
+                            const d = new Date(pt.date).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })
+                            const isPR = pt.best === Math.max(...points.map(p => p.best))
+                            return (
+                              <tr key={i} className={isPR ? 'nkf-ex-hist-pr-row' : ''}>
+                                <td>{d}</td>
+                                <td>{pt.best}kg</td>
+                                <td>{pt.sets}</td>
+                                <td>{pt.vol.toFixed(0)}kg</td>
+                              </tr>
+                            )
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Past sessions */}
+          <div className="nkf-prog-hist-section-label" style={{ marginTop: '28px' }}>📋 Past Sessions</div>
+          <div className="nkf-history-view">
+            {sessions.map(session => {
+              const date = new Date(session.started_at)
+              const dateStr = date.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
+              const duration = session.completed_at
+                ? Math.round((new Date(session.completed_at) - new Date(session.started_at)) / 60000) : null
+              const isOpen = expandedSession === session.id
+              const sets = sessionSets[session.id]
+              return (
+                <div key={session.id} className={`nkf-hist-session-card${isOpen ? ' open' : ''}`}>
+                  <div className="nkf-hist-session-header" onClick={() => loadSets(session.id)}>
+                    <div className="nkf-hist-session-info">
+                      <span className="nkf-hist-session-name">{dateStr}</span>
+                      {session.notes && <span className="nkf-hist-session-note">📝 {session.notes}</span>}
+                    </div>
+                    <div className="nkf-hist-session-meta">
+                      {session.bodyweight && <span className="nkf-hist-meta-chip">⚖️ {session.bodyweight}kg</span>}
+                      {duration && <span className="nkf-hist-meta-chip">⏱ {duration}min</span>}
+                      <button
+                        className="nkf-hist-action-btn nkf-hist-share-btn"
+                        title="Share results"
+                        onClick={e => { e.stopPropagation(); shareSession(session) }}
+                      >↑ Share</button>
+                      <button
+                        className="nkf-hist-action-btn nkf-hist-delete-btn"
+                        title="Delete session"
+                        onClick={e => { e.stopPropagation(); if (window.confirm('Delete this workout session?')) deleteSession(session.id) }}
+                      >✕</button>
+                      <span className="nkf-hist-chevron" style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>▼</span>
+                    </div>
+                  </div>
+                  {isOpen && sets && (
+                    <div className="nkf-hist-session-body">
+                      {Object.entries(sets).map(([exName, exSets]) => {
+                        const info = getExercise(exName)
+                        const best = Math.max(...exSets.map(s => s.weight || 0))
+                        const totalVol = exSets.reduce((acc, s) => acc + (s.weight || 0) * (s.reps || 0), 0)
+                        return (
+                          <div key={exName} className="nkf-hist-ex-block">
+                            <div className="nkf-hist-ex-header">
+                              <span className="nkf-hist-ex-name">{exName}</span>
+                              <div className="nkf-hist-ex-stats">
+                                <span style={{ color: info?.dayColor || '#aaa' }}>Best: {best}kg</span>
+                                <span>Vol: {totalVol}kg</span>
+                              </div>
+                            </div>
+                            <table className="nkf-ex-hist-table">
+                              <thead><tr><th>Set</th><th>Weight</th><th>Reps</th><th>Volume</th></tr></thead>
+                              <tbody>
+                                {exSets.map((s, i) => (
+                                  <tr key={i} className={s.weight === best && best > 0 ? 'nkf-ex-hist-pr-row' : ''}>
+                                    <td>{s.set_number}</td>
+                                    <td>{s.weight > 0 ? `${s.weight}kg` : '—'}</td>
+                                    <td>{s.reps || '—'}</td>
+                                    <td>{s.weight && s.reps ? `${(s.weight * s.reps).toFixed(0)}kg` : '—'}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+// ─── Programs View ────────────────────────────────────────────────────────────
+
+// ─── Community Programs ───────────────────────────────────────────────────────
+
+function CommunityPrograms({ user, onCopy }) {
+  const [programs, setPrograms] = useState([])
+  const [profiles, setProfiles] = useState({})
+  const [loading, setLoading] = useState(true)
+  const [copying, setCopying] = useState(null)
+  const [expandedId, setExpandedId] = useState(null)
+
+  useEffect(() => {
+    const load = async () => {
+      const { data } = await supabase
+        .from('programs')
+        .select('*')
+        .eq('is_public', true)
+        .order('created_at', { ascending: false })
+      if (!data?.length) { setLoading(false); return }
+      setPrograms(data)
+      const ids = [...new Set(data.map(p => p.user_id))]
+      const { data: profs } = await supabase.from('profiles').select('id, display_name').in('id', ids)
+      const map = {}
+      profs?.forEach(p => { map[p.id] = p.display_name || 'Nicktopian' })
+      setProfiles(map)
+      setLoading(false)
+    }
+    load()
+  }, [])
+
+  const copyProgram = async (p) => {
+    if (!user?.id) return
+    setCopying(p.id)
+    await supabase.from('programs').insert({
+      user_id: user.id,
+      name: `${p.name} (copy)`,
+      exercises: p.exercises,
+      notes: p.notes || null,
+      is_public: false,
+    })
+    setCopying(null)
+    onCopy()
+  }
+
+  if (loading) return <div className="nkf-loading-msg">Loading community programs...</div>
+  if (!programs.length) return (
+    <div className="nkf-empty-state">
+      <div className="nkf-empty-icon">🌐</div>
+      <p>No shared programs yet. Be the first to share yours!</p>
+    </div>
+  )
+
+  return (
+    <div className="nkf-community-programs">
+      {programs.map(p => {
+        const isOpen = expandedId === p.id
+        const isOwn = p.user_id === user?.id
+        return (
+          <div key={p.id} className={`nkf-community-card${isOpen ? ' open' : ''}`}>
+            <div className="nkf-community-card-header" onClick={() => setExpandedId(isOpen ? null : p.id)}>
+              <div className="nkf-community-card-info">
+                <span className="nkf-community-card-name">{p.name}</span>
+                <span className="nkf-community-card-author">by {profiles[p.user_id] || 'Nicktopian'} · {timeAgo(p.created_at)}</span>
+              </div>
+              <div className="nkf-community-card-meta">
+                <span className="nkf-community-ex-count">{p.exercises.length} exercises</span>
+                <span className="nkf-hist-chevron" style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>▼</span>
+              </div>
+            </div>
+
+            {isOpen && (
+              <div className="nkf-community-card-body">
+                <div className="nkf-community-exercises">
+                  {p.exercises.map((ex, i) => {
+                    const info = getExercise(ex)
+                    return <span key={i} className="nkf-program-ex-tag" style={{ borderColor: info?.dayColor || '#444' }}>{ex}</span>
+                  })}
+                </div>
+                {p.notes && (
+                  <div className="nkf-community-notes">
+                    <span className="nkf-community-notes-label">📝 Notes</span>
+                    <p className="nkf-community-notes-text">{p.notes}</p>
+                  </div>
+                )}
+                {!isOwn && (
+                  <button
+                    className="nkf-copy-program-btn"
+                    onClick={() => copyProgram(p)}
+                    disabled={copying === p.id}
+                  >
+                    {copying === p.id ? 'Copying...' : '📋 Copy to My Programs'}
+                  </button>
+                )}
+                {isOwn && <div className="nkf-community-own-badge">✓ Your program</div>}
+              </div>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// ─── Workout History View ─────────────────────────────────────────────────────
+
+function WorkoutHistoryView({ user }) {
+  const [sessions, setSessions] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [expandedSession, setExpandedSession] = useState(null)
+  const [sessionSets, setSessionSets] = useState({})
+  const [deletingId, setDeletingId] = useState(null)
+  const [sharingId, setSharingId] = useState(null)
+  const [shareToast, setShareToast] = useState(null) // 'copied' | null
+
+  useEffect(() => {
+    const load = async () => {
+      const { data } = await supabase
+        .from('workout_sessions')
+        .select('*')
+        .eq('user_id', user.id)
+        .not('completed_at', 'is', null)
+        .order('started_at', { ascending: false })
+      setSessions(data || [])
+      setLoading(false)
+    }
+    load()
+  }, [user.id])
+
+  const loadSets = async (sessionId) => {
+    if (sessionSets[sessionId]) { setExpandedSession(s => s === sessionId ? null : sessionId); return }
+    const { data } = await supabase
+      .from('session_sets')
+      .select('*')
+      .eq('session_id', sessionId)
+      .order('exercise_name')
+      .order('set_number')
+    const grouped = {}
+    data?.forEach(row => {
+      if (!grouped[row.exercise_name]) grouped[row.exercise_name] = []
+      grouped[row.exercise_name].push(row)
+    })
+    setSessionSets(prev => ({ ...prev, [sessionId]: grouped }))
+    setExpandedSession(s => s === sessionId ? null : sessionId)
+  }
+
+  const deleteSession = async (sessionId) => {
+    setDeletingId(sessionId)
+    await supabase.from('session_sets').delete().eq('session_id', sessionId)
+    await supabase.from('workout_sessions').delete().eq('id', sessionId)
+    setSessions(prev => prev.filter(s => s.id !== sessionId))
+    if (expandedSession === sessionId) setExpandedSession(null)
+    setDeletingId(null)
+  }
+
+  const shareSession = async (session) => {
+    setSharingId(session.id)
+    // Ensure sets are loaded
+    let sets = sessionSets[session.id]
+    if (!sets) {
+      const { data } = await supabase
+        .from('session_sets')
+        .select('*')
+        .eq('session_id', session.id)
+        .order('exercise_name')
+        .order('set_number')
+      const grouped = {}
+      data?.forEach(row => {
+        if (!grouped[row.exercise_name]) grouped[row.exercise_name] = []
+        grouped[row.exercise_name].push(row)
+      })
+      sets = grouped
+      setSessionSets(prev => ({ ...prev, [session.id]: grouped }))
+    }
+
+    const date = new Date(session.started_at).toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
+    const duration = session.completed_at
+      ? Math.round((new Date(session.completed_at) - new Date(session.started_at)) / 60000) : null
+
+    let text = `💪 ${session.program_name || 'Workout'} — ${date}\n`
+    if (session.bodyweight) text += `⚖️ Bodyweight: ${session.bodyweight}kg\n`
+    if (duration) text += `⏱ Duration: ${duration}min\n`
+    if (session.notes) text += `📝 ${session.notes}\n`
+    text += '\n'
+
+    Object.entries(sets).forEach(([exName, exSets]) => {
+      const best = Math.max(...exSets.map(s => s.weight || 0))
+      text += `${exName} (best: ${best}kg)\n`
+      exSets.forEach(s => {
+        text += `  Set ${s.set_number}: ${s.weight > 0 ? s.weight + 'kg' : '—'} × ${s.reps || '—'}\n`
+      })
+    })
+    text += '\n— via Nicktopia 🏋️'
+
+    try {
+      await navigator.clipboard.writeText(text)
+      setShareToast('copied')
+      setTimeout(() => setShareToast(null), 2500)
+    } catch {
+      // Fallback: show in prompt
+      prompt('Copy your results:', text)
+    }
+    setSharingId(null)
+  }
+
+  if (loading) return <div className="nkf-loading-msg">Loading history...</div>
+  if (!sessions.length) return (
+    <div className="nkf-empty-state">
+      <div className="nkf-empty-icon">📅</div>
+      <p>No completed workouts yet. Finish a session to see it here.</p>
+    </div>
+  )
+
+  return (
+    <div className="nkf-history-view">
+      {shareToast === 'copied' && (
+        <div className="nkf-share-toast">✓ Results copied to clipboard — paste anywhere!</div>
+      )}
+
+      {sessions.map(session => {
+        const date = new Date(session.started_at)
+        const dateStr = date.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
+        const duration = session.completed_at
+          ? Math.round((new Date(session.completed_at) - new Date(session.started_at)) / 60000)
+          : null
+        const isOpen = expandedSession === session.id
+        const sets = sessionSets[session.id]
+
+        return (
+          <div key={session.id} className={`nkf-hist-session-card${isOpen ? ' open' : ''}`}>
+            <div className="nkf-hist-session-header" onClick={() => loadSets(session.id)}>
+              <div className="nkf-hist-session-info">
+                <span className="nkf-hist-session-name">{session.program_name || 'Workout'}</span>
+                <span className="nkf-hist-session-date">{dateStr}</span>
+              </div>
+              <div className="nkf-hist-session-meta">
+                {session.bodyweight && <span className="nkf-hist-meta-chip">⚖️ {session.bodyweight}kg</span>}
+                {duration && <span className="nkf-hist-meta-chip">⏱ {duration}min</span>}
+                <button
+                  className="nkf-hist-action-btn nkf-hist-share-btn"
+                  title="Share results"
+                  disabled={sharingId === session.id}
+                  onClick={e => { e.stopPropagation(); shareSession(session) }}
+                >
+                  {sharingId === session.id ? '...' : '↑ Share'}
+                </button>
+                <button
+                  className="nkf-hist-action-btn nkf-hist-delete-btn"
+                  title="Delete session"
+                  disabled={deletingId === session.id}
+                  onClick={e => { e.stopPropagation(); if (window.confirm('Delete this workout session?')) deleteSession(session.id) }}
+                >
+                  {deletingId === session.id ? '...' : '✕'}
+                </button>
+                <span className="nkf-hist-chevron" style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>▼</span>
+              </div>
+            </div>
+
+            {isOpen && (
+              <div className="nkf-hist-session-body">
+                {session.notes && (
+                  <div className="nkf-hist-session-notes">📝 {session.notes}</div>
+                )}
+                {!sets ? (
+                  <div className="nkf-loading-msg" style={{ padding: '16px 0' }}>Loading...</div>
+                ) : Object.entries(sets).map(([exName, exSets]) => {
+                  const info = getExercise(exName)
+                  const best = Math.max(...exSets.map(s => s.weight || 0))
+                  const totalVol = exSets.reduce((acc, s) => acc + (s.weight || 0) * (s.reps || 0), 0)
+                  return (
+                    <div key={exName} className="nkf-hist-ex-block">
+                      <div className="nkf-hist-ex-header">
+                        <span className="nkf-hist-ex-name">{exName}</span>
+                        <div className="nkf-hist-ex-stats">
+                          <span style={{ color: info?.dayColor || '#aaa' }}>Best: {best}kg</span>
+                          <span>Vol: {totalVol}kg</span>
+                        </div>
+                      </div>
+                      <table className="nkf-ex-hist-table">
+                        <thead>
+                          <tr><th>Set</th><th>Weight</th><th>Reps</th><th>Volume</th></tr>
+                        </thead>
+                        <tbody>
+                          {exSets.map((s, i) => (
+                            <tr key={i} className={s.weight === best && best > 0 ? 'nkf-ex-hist-pr-row' : ''}>
+                              <td>{s.set_number}</td>
+                              <td>{s.weight > 0 ? `${s.weight}kg` : '—'}</td>
+                              <td>{s.reps || '—'}</td>
+                              <td>{s.weight && s.reps ? `${(s.weight * s.reps).toFixed(0)}kg` : '—'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+
 // ─── Programs View ────────────────────────────────────────────────────────────
 
 function ProgramsView({ user, onTrain }) {
   const [programs, setPrograms] = useState([])
   const [building, setBuilding] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState('programs')
+  const [viewingHistory, setViewingHistory] = useState(null) // program object
+  const [editingNotes, setEditingNotes] = useState(null) // program id being edited
+  const [notesInput, setNotesInput] = useState('')
+  const [savingNotes, setSavingNotes] = useState(false)
+  const [togglingShare, setTogglingShare] = useState(null)
 
   const load = useCallback(async () => {
     const { data } = await supabase.from('programs').select('*').eq('user_id', user.id).order('created_at', { ascending: false })
@@ -378,21 +961,76 @@ function ProgramsView({ user, onTrain }) {
 
   useEffect(() => { load() }, [load])
 
+  const [confirmDelete, setConfirmDelete] = useState(null) // program id pending delete
+
   const deleteProgram = async (id) => {
-    if (!confirm('Delete this program?')) return
-    await supabase.from('programs').delete().eq('id', id)
-    setPrograms(p => p.filter(x => x.id !== id))
+    setConfirmDelete(id)
+  }
+
+  const confirmDeleteYes = async () => {
+    await supabase.from('programs').delete().eq('id', confirmDelete)
+    setPrograms(p => p.filter(x => x.id !== confirmDelete))
+    setConfirmDelete(null)
+  }
+
+  const saveNotes = async (id) => {
+    setSavingNotes(true)
+    await supabase.from('programs').update({ notes: notesInput }).eq('id', id)
+    setPrograms(prev => prev.map(p => p.id === id ? { ...p, notes: notesInput } : p))
+    setEditingNotes(null)
+    setSavingNotes(false)
+  }
+
+  const toggleShare = async (p) => {
+    setTogglingShare(p.id)
+    const newVal = !p.is_public
+    await supabase.from('programs').update({ is_public: newVal }).eq('id', p.id)
+    setPrograms(prev => prev.map(x => x.id === p.id ? { ...x, is_public: newVal } : x))
+    setTogglingShare(null)
   }
 
   if (building) return <ProgramBuilder user={user} onSave={() => { setBuilding(false); load() }} onCancel={() => setBuilding(false)} />
+  if (viewingHistory) return <ProgramHistory program={viewingHistory} user={user} onBack={() => setViewingHistory(null)} />
 
   return (
     <div className="nkf-programs-view">
       <div className="nkf-programs-top">
         <h2 className="nkf-section-title">My Programs</h2>
-        <button className="nkf-new-program-btn" onClick={() => setBuilding(true)}>+ New Program</button>
+        {activeTab === 'programs' && (
+          <button className="nkf-new-program-btn" onClick={() => setBuilding(true)}>+ New Program</button>
+        )}
       </div>
-      {loading ? (
+
+      <div className="nkf-prog-tabs">
+        <button className={`nkf-prog-tab${activeTab === 'programs' ? ' active' : ''}`} onClick={() => setActiveTab('programs')}>📋 My Programs</button>
+        <button className={`nkf-prog-tab${activeTab === 'history' ? ' active' : ''}`} onClick={() => setActiveTab('history')}>📅 History</button>
+        <button className={`nkf-prog-tab${activeTab === 'community' ? ' active' : ''}`} onClick={() => setActiveTab('community')}>🌐 Community</button>
+      </div>
+
+      {/* DeathStare Bruno delete confirm */}
+      {confirmDelete && (
+        <div className="nkf-bruno-overlay" onClick={() => setConfirmDelete(null)}>
+          <div className="nkf-bruno-popup" onClick={e => e.stopPropagation()}>
+            <img src="/DeathStareBrunie-removebg-preview.png" alt="Bruno" className="nkf-bruno-img nkf-deathstare-img" />
+            <div className="nkf-bruno-bubble">
+              <p className="nkf-bruno-msg">
+                You sure about that? 👁️👁️<br /><br />
+                That program is gone forever mate. Bruno doesn't forget. Bruno doesn't forgive.
+              </p>
+              <div className="nkf-bruno-btns">
+                <button className="nkf-bruno-btn" style={{ background: '#333', color: '#aaa', border: '1px solid #444' }} onClick={() => setConfirmDelete(null)}>Actually no</button>
+                <button className="nkf-bruno-btn" onClick={confirmDeleteYes}>Delete it</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'history' ? (
+        <WorkoutHistoryView user={user} />
+      ) : activeTab === 'community' ? (
+        <CommunityPrograms user={user} onCopy={() => { setActiveTab('programs'); load() }} />
+      ) : loading ? (
         <div className="nkf-loading-msg">Loading programs...</div>
       ) : programs.length === 0 ? (
         <div className="nkf-empty-state">
@@ -415,14 +1053,91 @@ function ProgramsView({ user, onTrain }) {
                 })}
                 {p.exercises.length > 5 && <span className="nkf-program-ex-more">+{p.exercises.length - 5} more</span>}
               </div>
+              {/* Notes section */}
+              {editingNotes === p.id ? (
+                <div className="nkf-program-notes-edit">
+                  <textarea
+                    className="nkf-program-notes-input"
+                    placeholder="Add notes, goals, or anything about this program..."
+                    value={notesInput}
+                    onChange={e => setNotesInput(e.target.value)}
+                    rows={3}
+                  />
+                  <div className="nkf-program-notes-btns">
+                    <button className="nkf-notes-save-btn" onClick={() => saveNotes(p.id)} disabled={savingNotes}>
+                      {savingNotes ? 'Saving...' : 'Save'}
+                    </button>
+                    <button className="nkf-notes-cancel-btn" onClick={() => setEditingNotes(null)}>Cancel</button>
+                  </div>
+                </div>
+              ) : p.notes ? (
+                <div className="nkf-program-notes-display" onClick={() => { setEditingNotes(p.id); setNotesInput(p.notes) }}>
+                  <span className="nkf-program-notes-label">📝</span>
+                  <span className="nkf-program-notes-text">{p.notes}</span>
+                </div>
+              ) : null}
+
               <div className="nkf-program-card-footer">
-                <span className="nkf-program-ex-count">{p.exercises.length} exercises</span>
-                <button className="nkf-train-btn" onClick={() => onTrain(p)}>▶ Train This</button>
+                <div className="nkf-program-card-actions">
+                  <button
+                    className="nkf-program-notes-btn"
+                    onClick={() => { setEditingNotes(p.id); setNotesInput(p.notes || '') }}
+                    title="Add notes"
+                  >📝</button>
+                  <button
+                    className={`nkf-program-share-btn${p.is_public ? ' shared' : ''}`}
+                    onClick={() => toggleShare(p)}
+                    disabled={togglingShare === p.id}
+                    title={p.is_public ? 'Shared publicly — click to unshare' : 'Share to community'}
+                  >
+                    {p.is_public ? '🌐 Shared' : '↑ Share'}
+                  </button>
+                </div>
+                <div className="nkf-card-right-btns">
+                  <button className="nkf-hist-btn" onClick={() => setViewingHistory(p)}>📊 History</button>
+                  <button className="nkf-train-btn" onClick={() => onTrain(p)}>▶ Train This</button>
+                </div>
               </div>
             </div>
           ))}
         </div>
       )}
+    </div>
+  )
+}
+
+// ─── Post Workout Note ────────────────────────────────────────────────────────
+
+function PostWorkoutNote({ sessionId }) {
+  const [note, setNote] = useState('')
+  const [saved, setSaved] = useState(false)
+  const [saving, setSaving] = useState(false)
+
+  const save = async () => {
+    if (!note.trim() || !sessionId) return
+    setSaving(true)
+    await supabase.from('workout_sessions').update({ notes: note.trim() }).eq('id', sessionId)
+    setSaved(true)
+    setSaving(false)
+  }
+
+  if (saved) return (
+    <div className="nkf-postnote-saved">✓ Note saved</div>
+  )
+
+  return (
+    <div className="nkf-postnote">
+      <div className="nkf-postnote-label">📝 Session Notes <span>(optional)</span></div>
+      <textarea
+        className="nkf-postnote-input"
+        placeholder="How did it feel? Any PRs? Things to improve next time..."
+        value={note}
+        onChange={e => setNote(e.target.value)}
+        rows={3}
+      />
+      <button className="nkf-postnote-btn" onClick={save} disabled={saving || !note.trim()}>
+        {saving ? 'Saving...' : 'Save Note'}
+      </button>
     </div>
   )
 }
@@ -440,6 +1155,7 @@ function WorkoutTracker({ program, user, onComplete, savedState }) {
   const [repsInput, setRepsInput] = useState('')
   const [showTips, setShowTips] = useState(false)
   const [showVideo, setShowVideo] = useState(false)
+  const [showComments, setShowComments] = useState(false)
 
   const exercises = program.exercises
   const currentExName = exercises[currentIdx]
@@ -490,6 +1206,13 @@ function WorkoutTracker({ program, user, onComplete, savedState }) {
         hist[exName] = exSets.filter(s => s.session_id === lastSessionId).sort((a, b) => a.set_number - b.set_number)
       })
       setHistory(hist)
+      // Prefill first exercise on history load
+      const firstEx = exercises[0]
+      const firstPrefill_sets = hist[firstEx] || []
+      if (firstPrefill_sets.length > 0) {
+        setWeightInput(String(firstPrefill_sets[0].weight || ''))
+        setRepsInput(String(firstPrefill_sets[0].reps || ''))
+      }
     }
     loadHistory()
   }, [exercises, user.id])
@@ -501,18 +1224,63 @@ function WorkoutTracker({ program, user, onComplete, savedState }) {
       .insert({ user_id: user.id, program_id: program.id, program_name: program.name, bodyweight: parseFloat(bodyweight) })
       .select().single()
     setSessionId(data.id)
+    // Prefill first exercise from last session
+    const firstExName = exercises[0]
+    const firstHist = {}
+    // We'll set inputs after history loads — use empty for now, useEffect will handle
     setPhase('training')
   }
+
+  const [showFunnyBruno, setShowFunnyBruno] = useState(false)
+  const [prMessage, setPrMessage] = useState('')
+
+  const PR_MSGS = [
+    "WAIT. IS THAT A PR?? Bruno is losing his mind right now 🤯",
+    "NEW PR DETECTED. Bruno just knocked over his water bottle in excitement.",
+    "That's a personal record!! Bruno is literally sprinting around the room.",
+    "PR ALERT 🚨 Bruno saw that and immediately texted the group chat.",
+  ]
 
   const addSet = () => {
     if (!weightInput && !repsInput) return
     const set = { weight: parseFloat(weightInput) || 0, reps: parseInt(repsInput) || 0 }
-    setAllSets(prev => ({ ...prev, [currentExName]: [...(prev[currentExName] || []), set] }))
-    setRepsInput('')
+    // Check if this is a PR (beats last session best)
+    const lastBest = (history[currentExName] || []).reduce((max, s) => Math.max(max, s.weight || 0), 0)
+    const currentBest = (allSets[currentExName] || []).reduce((max, s) => Math.max(max, s.weight || 0), 0)
+    if (set.weight > 0 && lastBest > 0 && set.weight > lastBest && set.weight > currentBest) {
+      setPrMessage(PR_MSGS[Math.floor(Math.random() * PR_MSGS.length)])
+      setShowFunnyBruno(true)
+      setTimeout(() => setShowFunnyBruno(false), 3500)
+    }
+    setAllSets(prev => {
+      const updated = { ...prev, [currentExName]: [...(prev[currentExName] || []), set] }
+      setWeightInput(String(set.weight || ''))
+      setRepsInput(String(set.reps || ''))
+      return updated
+    })
   }
+
+  // When exercise changes, pre-fill from last session's set 1
+  const getPrefilledInputs = (exName, currentSetsForEx, hist) => {
+    const lastSets = hist[exName] || []
+    const setIndex = currentSetsForEx.length // 0-based index of the NEXT set to be added
+    if (setIndex === 0) {
+      // Set 1: prefill from last session's set 1
+      const lastSet1 = lastSets[0]
+      return { w: lastSet1 ? String(lastSet1.weight || '') : '', r: lastSet1 ? String(lastSet1.reps || '') : '' }
+    } else {
+      // Set 2+: prefill from the CURRENT workout's last set
+      const prevSet = currentSetsForEx[setIndex - 1]
+      return { w: prevSet ? String(prevSet.weight || '') : '', r: prevSet ? String(prevSet.reps || '') : '' }
+    }
+  }
+
+  const [showSickBruno, setShowSickBruno] = useState(false)
 
   const removeSet = (exName, idx) => {
     setAllSets(prev => ({ ...prev, [exName]: prev[exName].filter((_, i) => i !== idx) }))
+    setShowSickBruno(true)
+    setTimeout(() => setShowSickBruno(false), 2800)
   }
 
   const nextExercise = async () => {
@@ -523,8 +1291,11 @@ function WorkoutTracker({ program, user, onComplete, savedState }) {
       }))
       await supabase.from('session_sets').insert(rows)
     }
-    setWeightInput(''); setRepsInput(''); setShowTips(false); setShowVideo(false)
+    setShowTips(false); setShowVideo(false); setShowComments(false)
     if (currentIdx < exercises.length - 1) {
+      const nextExName = exercises[currentIdx + 1]
+      const nextPrefill = getPrefilledInputs(nextExName, allSets[nextExName] || [], history)
+      setWeightInput(nextPrefill.w); setRepsInput(nextPrefill.r)
       setCurrentIdx(i => i + 1)
     } else {
       if (sessionId) await supabase.from('workout_sessions').update({ completed_at: new Date().toISOString() }).eq('id', sessionId)
@@ -566,12 +1337,24 @@ function WorkoutTracker({ program, user, onComplete, savedState }) {
   // Done
   if (phase === 'done') {
     const exercisesDone = Object.keys(allSets).filter(k => allSets[k].length > 0)
+    const BRUNO_QUIPS = [
+      "Just finished his set too. He's in the pool cooling down and definitely not just floating around doing nothing.",
+      "Nailed every rep. Now he's in the pool recovering like the professional athlete he absolutely is.",
+      "Did the whole program without checking his phone once. Currently celebrating in the pool, pool noodle in hand.",
+      "Spotted you the whole way. Now he's doing laps to cool down — well, one lap. Very slowly.",
+    ]
+    const quip = BRUNO_QUIPS[Math.floor(Math.random() * BRUNO_QUIPS.length)]
     return (
       <div className="nkf-tracker-phase nkf-done-phase">
         <div className="nkf-done-card">
-          <div className="nkf-done-icon">🏆</div>
-          <h2 className="nkf-done-title">Workout Complete!</h2>
-          <p className="nkf-done-subtitle">{program.name}</p>
+          <div className="nkf-pool-bruno-section">
+            <img src="/PoolBrunie.png" alt="Pool Bruno" className="nkf-pool-bruno" />
+            <div className="nkf-pool-bruno-text">
+              <p className="nkf-bruno-congrats-title">WORKOUT COMPLETE! 💪</p>
+              <p className="nkf-pool-program-name">{program.name}</p>
+              <p className="nkf-bruno-congrats-quip">Bruno {quip}</p>
+            </div>
+          </div>
           <div className="nkf-done-stats">
             <div className="nkf-done-stat"><span className="nkf-done-stat-num">{totalSets}</span><span>Total Sets</span></div>
             <div className="nkf-done-stat"><span className="nkf-done-stat-num">{exercisesDone.length}</span><span>Exercises</span></div>
@@ -587,6 +1370,7 @@ function WorkoutTracker({ program, user, onComplete, savedState }) {
               </div>
             ))}
           </div>
+          <PostWorkoutNote sessionId={sessionId} />
           <button className="nkf-start-btn" onClick={onComplete}>← Back to Programs</button>
         </div>
       </div>
@@ -599,6 +1383,18 @@ function WorkoutTracker({ program, user, onComplete, savedState }) {
 
   return (
     <div className="nkf-tracker-phase nkf-training-phase">
+      {showSickBruno && (
+        <div className="nkf-sick-bruno-toast">
+          <img src="/SickBrunie-removebg-preview.png" alt="Sick Bruno" className="nkf-sick-bruno-img" />
+          <span>Bro deleted a set? Are you dying?? 🤢</span>
+        </div>
+      )}
+      {showFunnyBruno && (
+        <div className="nkf-funny-bruno-toast">
+          <img src="/Funnybrunie-removebg-preview.png" alt="Funny Bruno" className="nkf-funny-bruno-img" />
+          <span>{prMessage}</span>
+        </div>
+      )}
       <div className="nkf-progress-bar">
         <div className="nkf-progress-fill" style={{ width: `${((currentIdx + 1) / exercises.length) * 100}%`, background: currentEx?.dayColor || '#fff' }} />
       </div>
@@ -617,13 +1413,18 @@ function WorkoutTracker({ program, user, onComplete, savedState }) {
               <button
                 className={`nkf-toggle-btn${showVideo ? ' active' : ''}`}
                 style={showVideo ? { borderColor: currentEx?.dayColor, color: currentEx?.dayColor } : {}}
-                onClick={() => { setShowVideo(v => !v); setShowTips(false) }}
+                onClick={() => { setShowVideo(v => !v); setShowTips(false); setShowComments(false) }}
               >▶ Video</button>
               <button
                 className={`nkf-toggle-btn${showTips ? ' active' : ''}`}
                 style={showTips ? { borderColor: currentEx?.dayColor, color: currentEx?.dayColor } : {}}
-                onClick={() => { setShowTips(t => !t); setShowVideo(false) }}
+                onClick={() => { setShowTips(t => !t); setShowVideo(false); setShowComments(false) }}
               >📋 Tips</button>
+              <button
+                className={`nkf-toggle-btn${showComments ? ' active' : ''}`}
+                style={showComments ? { borderColor: currentEx?.dayColor, color: currentEx?.dayColor } : {}}
+                onClick={() => { setShowComments(c => !c); setShowVideo(false); setShowTips(false) }}
+              >💬 Chat</button>
             </div>
           </div>
 
@@ -655,6 +1456,17 @@ function WorkoutTracker({ program, user, onComplete, savedState }) {
                   </li>
                 ))}
               </ul>
+            </div>
+          )}
+
+          {/* Live chat panel */}
+          {showComments && (
+            <div className="nkf-training-media nkf-training-chat">
+              <div className="nkf-training-chat-label">
+                💬 <span>Live Chat</span>
+                <span className="nkf-training-chat-sub">Others training this exercise right now can see this</span>
+              </div>
+              <ExerciseComments exerciseName={currentExName} user={user} />
             </div>
           )}
 
@@ -733,77 +1545,239 @@ function WorkoutTracker({ program, user, onComplete, savedState }) {
 
 // ─── Leaderboard ──────────────────────────────────────────────────────────────
 
-function LeaderboardView() {
-  const [selectedEx, setSelectedEx] = useState(ALL_EXERCISES[0]?.name || '')
-  const [board, setBoard] = useState([])
+// ─── PR Comments ─────────────────────────────────────────────────────────────
+
+function PRComments({ exerciseName, user }) {
+  const [comments, setComments] = useState([])
   const [profiles, setProfiles] = useState({})
-  const [loading, setLoading] = useState(false)
+  const [text, setText] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [posting, setPosting] = useState(false)
 
   const load = useCallback(async () => {
-    if (!selectedEx) return
-    setLoading(true)
     const { data } = await supabase
-      .from('session_sets')
-      .select('user_id, weight, reps, created_at')
-      .eq('exercise_name', selectedEx)
-      .order('weight', { ascending: false })
-    if (!data?.length) { setBoard([]); setLoading(false); return }
-    const prMap = {}
-    data.forEach(row => {
-      if (!prMap[row.user_id] || row.weight > prMap[row.user_id].weight) prMap[row.user_id] = row
-    })
-    const sorted = Object.values(prMap).sort((a, b) => b.weight - a.weight)
-    setBoard(sorted)
-    const ids = sorted.map(s => s.user_id)
-    const { data: profs } = await supabase.from('profiles').select('id, display_name').in('id', ids)
-    const map = {}
-    profs?.forEach(p => { map[p.id] = p.display_name || 'Nicktopian' })
-    setProfiles(map)
+      .from('pr_comments')
+      .select('*')
+      .eq('exercise_name', exerciseName)
+      .order('created_at', { ascending: false })
+    if (!data) { setLoading(false); return }
+    setComments(data)
+    const ids = [...new Set(data.map(c => c.user_id))]
+    if (ids.length) {
+      const { data: profs } = await supabase.from('profiles').select('id, display_name').in('id', ids)
+      const map = {}
+      profs?.forEach(p => { map[p.id] = p.display_name || 'Nicktopian' })
+      setProfiles(map)
+    }
     setLoading(false)
-  }, [selectedEx])
+  }, [exerciseName])
 
   useEffect(() => { load() }, [load])
 
-  const ex = getExercise(selectedEx)
+  const post = async () => {
+    if (!text.trim() || !user?.id) return
+    setPosting(true)
+    await supabase.from('pr_comments').insert({ user_id: user.id, exercise_name: exerciseName, comment: text.trim() })
+    setText('')
+    await load()
+    setPosting(false)
+  }
+
+  const remove = async (id) => {
+    await supabase.from('pr_comments').delete().eq('id', id)
+    setComments(c => c.filter(x => x.id !== id))
+  }
+
+  return (
+    <div className="nkf-pr-comments">
+      {user && (
+        <div className="nkf-comment-input-row">
+          <input
+            className="nkf-comment-input"
+            placeholder="Hype someone up, trash talk, or call BS on a PR..."
+            value={text}
+            onChange={e => setText(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && post()}
+          />
+          <button className="nkf-comment-post-btn" onClick={post} disabled={posting || !text.trim()}>
+            {posting ? '...' : 'Post'}
+          </button>
+        </div>
+      )}
+      {loading ? (
+        <div className="nkf-comments-loading">Loading...</div>
+      ) : comments.length === 0 ? (
+        <div className="nkf-comments-empty">No hype yet. Be the first!</div>
+      ) : (
+        <div className="nkf-pr-comments-list">
+          {comments.map(c => (
+            <div key={c.id} className="nkf-pr-comment-item">
+              <div className="nkf-comment-meta">
+                <span className="nkf-comment-name">{profiles[c.user_id] || 'Nicktopian'}</span>
+                <span className="nkf-comment-time">{timeAgo(c.created_at)}</span>
+                {c.user_id === user?.id && (
+                  <button className="nkf-comment-delete" onClick={() => remove(c.id)}>✕</button>
+                )}
+              </div>
+              <div className="nkf-comment-text">{c.comment}</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function LeaderboardView({ user }) {
+  const [activeTab, setActiveTab] = useState('recent') // 'recent' | 'PUSH' | 'PULL' | 'LEGS'
+  const [allPRs, setAllPRs] = useState({}) // { exerciseName: [{user_id, weight, reps, created_at}] }
+  const [profiles, setProfiles] = useState({})
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true)
+      const { data } = await supabase
+        .from('session_sets')
+        .select('user_id, exercise_name, weight, reps, created_at')
+        .order('weight', { ascending: false })
+      if (!data?.length) { setLoading(false); return }
+
+      // Build PR map: per exercise, per user — keep only their best
+      const prMap = {} // { exerciseName: { userId: bestRow } }
+      data.forEach(row => {
+        if (!prMap[row.exercise_name]) prMap[row.exercise_name] = {}
+        const existing = prMap[row.exercise_name][row.user_id]
+        if (!existing || row.weight > existing.weight) prMap[row.exercise_name][row.user_id] = row
+      })
+
+      // Sort each exercise's leaderboard by weight desc
+      const result = {}
+      Object.entries(prMap).forEach(([exName, userMap]) => {
+        result[exName] = Object.values(userMap).sort((a, b) => b.weight - a.weight)
+      })
+      setAllPRs(result)
+
+      // Load all profiles
+      const ids = [...new Set(data.map(r => r.user_id))]
+      const { data: profs } = await supabase.from('profiles').select('id, display_name').in('id', ids)
+      const map = {}
+      profs?.forEach(p => { map[p.id] = p.display_name || 'Nicktopian' })
+      setProfiles(map)
+      setLoading(false)
+    }
+    load()
+  }, [])
+
   const medals = ['🥇', '🥈', '🥉']
+
+  // Recent PRs: latest entry across ALL exercises (1 per exercise, most recent)
+  const recentPRs = Object.entries(allPRs)
+    .map(([exName, board]) => {
+      const latest = [...board].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0]
+      return { exName, ...latest }
+    })
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    .slice(0, 15)
+
+  const [openComments, setOpenComments] = useState(null) // exercise name with comments open
+
+  const renderBoard = (exName, board) => {
+    const ex = getExercise(exName)
+    const commentsOpen = openComments === exName
+    return (
+      <div key={exName} className="nkf-lb-ex-block">
+        <div className="nkf-lb-ex-name" style={{ borderLeftColor: ex?.dayColor || '#444' }}>
+          {exName}
+          <span className="nkf-lb-ex-muscle" style={{ color: ex?.dayColor }}>{ex?.primaryMuscle}</span>
+        </div>
+        <div className="nkf-board">
+          {board.slice(0, 5).map((entry, i) => (
+            <div key={entry.user_id} className={`nkf-board-row${i === 0 ? ' podium' : ''}`}
+              style={i === 0 ? { borderColor: ex?.dayColor, background: `${ex?.dayColor}10` } : {}}>
+              <span className="nkf-board-rank">{medals[i] || `#${i + 1}`}</span>
+              <span className="nkf-board-name">{profiles[entry.user_id] || 'Nicktopian'}</span>
+              <div className="nkf-board-right">
+                <span className="nkf-board-weight" style={{ color: i === 0 ? ex?.dayColor : undefined }}>{entry.weight}kg</span>
+                <span className="nkf-board-reps">× {entry.reps}</span>
+                <span className="nkf-board-date">{timeAgo(entry.created_at)}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+        <button
+          className={`nkf-lb-comments-btn${commentsOpen ? ' open' : ''}`}
+          style={commentsOpen ? { borderColor: ex?.dayColor, color: ex?.dayColor } : {}}
+          onClick={() => setOpenComments(commentsOpen ? null : exName)}
+        >
+          💬 {commentsOpen ? 'Hide Comments' : 'Comments'}
+        </button>
+        {commentsOpen && <PRComments exerciseName={exName} user={user} />}
+      </div>
+    )
+  }
+
+  const TABS = [
+    { id: 'recent', label: '🕐 Recent' },
+    { id: 'PUSH', label: '🔺 Push' },
+    { id: 'PULL', label: '🔻 Pull' },
+    { id: 'LEGS', label: '⚡ Legs' },
+  ]
 
   return (
     <div className="nkf-leaderboard-view">
       <h2 className="nkf-section-title">🏆 PR Leaderboard</h2>
       <p className="nkf-section-sub">Heaviest weight ever logged per exercise, across all Nicktopians.</p>
 
-      <select className="nkf-ex-select" value={selectedEx} onChange={e => setSelectedEx(e.target.value)}
-        style={{ borderColor: ex?.dayColor || '#444' }}>
-        {Object.entries(EXERCISES).map(([day, { label, sections }]) => (
-          <optgroup key={day} label={`── ${label}`}>
-            {sections.map(sec => sec.exercises.map(e => (
-              <option key={e.name} value={e.name}>{e.name}</option>
-            )))}
-          </optgroup>
+      <div className="nkf-prog-tabs" style={{ marginBottom: '24px' }}>
+        {TABS.map(t => (
+          <button key={t.id} className={`nkf-prog-tab${activeTab === t.id ? ' active' : ''}`}
+            onClick={() => setActiveTab(t.id)}>{t.label}</button>
         ))}
-      </select>
+      </div>
 
       {loading ? (
-        <div className="nkf-loading-msg">Loading...</div>
-      ) : board.length === 0 ? (
-        <div className="nkf-empty-state">
-          <div className="nkf-empty-icon">🏋️</div>
-          <p>No data yet for this exercise. Be the first to log it!</p>
-        </div>
+        <div className="nkf-loading-msg">Loading leaderboard...</div>
+      ) : activeTab === 'recent' ? (
+        <>
+          <div className="nkf-lb-recent-label">Most recently set PRs across all exercises</div>
+          <div className="nkf-board">
+            {recentPRs.length === 0 ? (
+              <div className="nkf-empty-state"><div className="nkf-empty-icon">🏋️</div><p>No PRs logged yet!</p></div>
+            ) : recentPRs.map((entry, i) => {
+              const ex = getExercise(entry.exName)
+              return (
+                <div key={`${entry.exName}-${entry.user_id}`} className="nkf-board-row nkf-recent-row">
+                  <div className="nkf-recent-ex-info">
+                    <span className="nkf-recent-ex-name">{entry.exName}</span>
+                    <span className="nkf-recent-ex-muscle" style={{ color: ex?.dayColor }}>{ex?.primaryMuscle}</span>
+                  </div>
+                  <span className="nkf-board-name">{profiles[entry.user_id] || 'Nicktopian'}</span>
+                  <div className="nkf-board-right">
+                    <span className="nkf-board-weight" style={{ color: ex?.dayColor }}>{entry.weight}kg</span>
+                    <span className="nkf-board-reps">× {entry.reps}</span>
+                    <span className="nkf-board-date">{timeAgo(entry.created_at)}</span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </>
       ) : (
-        <div className="nkf-board">
-          {board.map((entry, i) => (
-            <div key={entry.user_id} className={`nkf-board-row${i < 3 ? ' podium' : ''}`}
-              style={i === 0 ? { borderColor: ex?.dayColor, background: `${ex?.dayColor}10` } : {}}>
-              <span className="nkf-board-rank">{medals[i] || `#${i + 1}`}</span>
-              <span className="nkf-board-name">{profiles[entry.user_id] || 'Nicktopian'}</span>
-              <div className="nkf-board-right">
-                <span className="nkf-board-weight" style={{ color: i === 0 ? ex?.dayColor : undefined }}>{entry.weight}kg</span>
-                <span className="nkf-board-reps">× {entry.reps} reps</span>
-                <span className="nkf-board-date">{timeAgo(entry.created_at)}</span>
-              </div>
+        <div className="nkf-lb-category">
+          {EXERCISES[activeTab]?.sections.map(sec =>
+            sec.exercises.map(ex => {
+              const board = allPRs[ex.name]
+              if (!board?.length) return null
+              return renderBoard(ex.name, board)
+            })
+          )}
+          {EXERCISES[activeTab]?.sections.every(sec => sec.exercises.every(ex => !allPRs[ex.name]?.length)) && (
+            <div className="nkf-empty-state">
+              <div className="nkf-empty-icon">🏋️</div>
+              <p>No PRs logged for {activeTab} exercises yet. Get training!</p>
             </div>
-          ))}
+          )}
         </div>
       )}
     </div>
@@ -848,7 +1822,7 @@ export default function Nickfit({ user }) {
 
   const handleTrain = (program) => {
     setTrainingProgram(program)
-    setView('train')
+    setView('programs')
   }
 
   const day = EXERCISES[activeDay]
@@ -856,7 +1830,6 @@ export default function Nickfit({ user }) {
   const NAV = [
     { id: 'library', label: '📚 Library' },
     { id: 'programs', label: '📋 Programs' },
-    { id: 'train', label: '🏋️ Train' },
     { id: 'leaderboard', label: '🏆 Leaderboard' },
   ]
 
@@ -914,6 +1887,12 @@ export default function Nickfit({ user }) {
             <div className="nkf-day-title-row">
               <div className="nkf-day-accent" style={{ background: day.color }} />
               <h2 className="nkf-day-title" style={{ color: day.color }}>{day.label} DAY</h2>
+              {activeDay === 'LEGS' && (
+                <div className="nkf-legs-bruno-wrap">
+                  <img src="/BrunoButt.png" alt="Bruno Legs Day" className="nkf-legs-bruno" />
+                  <span className="nkf-legs-bruno-caption">Leg day. Bruno's favourite. Apparently.</span>
+                </div>
+              )}
             </div>
             {day.sections.map(section => (
               <div key={section.muscle} className="nkf-muscle-section">
@@ -930,10 +1909,8 @@ export default function Nickfit({ user }) {
           </div>
         )}
 
-        {view === 'programs' && <ProgramsView user={user} onTrain={handleTrain} />}
-
-        {view === 'train' && !trainingProgram && <ProgramsView user={user} onTrain={handleTrain} />}
-        {view === 'train' && trainingProgram && (
+        {view === 'programs' && !trainingProgram && <ProgramsView user={user} onTrain={handleTrain} />}
+        {view === 'programs' && trainingProgram && (
           <WorkoutTracker
             program={trainingProgram}
             user={user}
@@ -942,7 +1919,7 @@ export default function Nickfit({ user }) {
           />
         )}
 
-        {view === 'leaderboard' && <LeaderboardView />}
+        {view === 'leaderboard' && <LeaderboardView user={user} />}
       </div>
     </div>
   )
