@@ -1049,3 +1049,229 @@
   font-size: 0.85rem;
   letter-spacing: 0.04em;
 }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   NICKCHAT v2 — SCREEN SHARING ADDITIONS
+   Append these to the bottom of nickchat.css
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Screen Share: grid layout when sharing is active ───────────────────────── */
+
+.video-grid.has-screenshare {
+  grid-template-columns: 1fr;
+  grid-template-rows: auto;
+}
+
+/* Screen share tile fills majority, camera tiles go below in a strip */
+.video-grid.has-screenshare .screen-share-tile {
+  grid-column: 1 / -1;
+  aspect-ratio: 16 / 9;
+  max-height: 60vh;
+}
+
+.video-grid.has-screenshare .video-tile:not(.screen-share-tile) {
+  aspect-ratio: 16 / 9;
+  max-width: 200px;
+  max-height: 120px;
+}
+
+/* When screen sharing, camera tiles flow in a horizontal strip at the bottom */
+.video-grid.has-screenshare {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  overflow-y: auto;
+}
+
+.video-grid.has-screenshare .screen-share-tile {
+  flex-shrink: 0;
+  width: 100%;
+}
+
+.video-grid.has-screenshare > .video-tile:not(.screen-share-tile) {
+  /* Wrap camera tiles in a row */
+  align-self: flex-start;
+}
+
+/* Camera strip container — we wrap the non-screen tiles */
+.video-camera-strip {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding: 0 0.75rem 0.75rem;
+  flex-shrink: 0;
+}
+
+.video-camera-strip .video-tile {
+  width: 160px;
+  height: 90px;
+  flex-shrink: 0;
+  aspect-ratio: 16 / 9;
+}
+
+/* ── Screen Share Tile ───────────────────────────────────────────────────────── */
+
+.screen-share-tile {
+  background: #000;
+  border: 2px solid rgba(41, 128, 185, 0.5);
+  border-radius: var(--radius);
+}
+
+.screen-share-label {
+  background: rgba(41, 128, 185, 0.8) !important;
+  font-size: 0.75rem !important;
+}
+
+/* ── Screen Share Banner (you are sharing) ───────────────────────────────────── */
+
+.screen-share-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  background: rgba(41, 128, 185, 0.2);
+  border-bottom: 1px solid rgba(41, 128, 185, 0.4);
+  padding: 0.5rem 1rem;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--cream);
+  flex-shrink: 0;
+}
+
+.screen-share-stop-btn {
+  background: rgba(192, 57, 43, 0.7);
+  border: 1px solid rgba(192, 57, 43, 0.9);
+  border-radius: var(--radius);
+  color: var(--cream);
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  padding: 0.3rem 0.85rem;
+  transition: background 0.2s;
+}
+
+.screen-share-stop-btn:hover {
+  background: rgba(192, 57, 43, 1);
+}
+
+/* ── Screen Share Control Button ─────────────────────────────────────────────── */
+
+.ctrl-btn.screen-sharing {
+  background: rgba(41, 128, 185, 0.5);
+  border: 2px solid rgba(41, 128, 185, 0.9);
+  animation: screen-share-pulse 2s ease-in-out infinite;
+}
+
+@keyframes screen-share-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(41, 128, 185, 0.4); }
+  50%       { box-shadow: 0 0 0 6px rgba(41, 128, 185, 0); }
+}
+
+/* ── Screen Share Error ───────────────────────────────────────────────────────── */
+
+.screen-share-error {
+  text-align: center;
+  font-size: 0.8rem;
+  color: #e74c3c;
+  background: rgba(231, 76, 60, 0.1);
+  border-top: 1px solid rgba(231, 76, 60, 0.3);
+  padding: 0.4rem 1rem;
+  flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   NICKCHAT v2 — RECORDING ADDITIONS
+   Append these to the bottom of nickchat.css (after screen share additions)
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Video top bar (holds REC indicator + screen share banner) ──────────────── */
+
+.video-top-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+  min-height: 0;
+}
+
+/* Hide top bar entirely when empty */
+.video-top-bar:empty {
+  display: none;
+}
+
+/* ── Recording Indicator (always-visible REC badge) ─────────────────────────── */
+
+.recording-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: rgba(192, 57, 43, 0.2);
+  border: 1px solid rgba(192, 57, 43, 0.6);
+  border-radius: 999px;
+  padding: 0.3rem 0.85rem 0.3rem 0.65rem;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #e74c3c;
+  flex-shrink: 0;
+}
+
+.rec-dot {
+  width: 8px;
+  height: 8px;
+  background: #e74c3c;
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: rec-blink 1.2s ease-in-out infinite;
+}
+
+@keyframes rec-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.2; }
+}
+
+/* ── Record control button ───────────────────────────────────────────────────── */
+
+.ctrl-btn.recording {
+  background: rgba(192, 57, 43, 0.5);
+  border: 2px solid rgba(192, 57, 43, 0.9);
+  animation: rec-btn-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes rec-btn-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(192, 57, 43, 0.5); }
+  50%       { box-shadow: 0 0 0 7px rgba(192, 57, 43, 0); }
+}
+
+/* ── Toast notification ──────────────────────────────────────────────────────── */
+
+.call-toast {
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(20, 5, 5, 0.95);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.6rem 1.25rem;
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  color: var(--cream);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 50;
+  animation: toast-in 0.2s ease, toast-out 0.3s ease 3.2s forwards;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+@keyframes toast-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
